@@ -73,7 +73,7 @@ const _decodeNumericValue = (buffer: Buffer): number => {
     return buffer.readUInt16BE(0);
   } else if (length === 3) {
     /* eslint-disable no-bitwise*/
-    return (buffer[1] << 8) | (buffer[2] + (buffer[0] << 16 >>> 0));
+    return (buffer[1] << 8) | (buffer[2] + ((buffer[0] << 16) >>> 0));
     /* eslint-enable no-bitwise*/
   }
 
@@ -190,11 +190,10 @@ class CoapMessages {
       }
 
       let uriOptions = [];
-      const hasExistingUri = (options || [])
-        .some(
-          (item: CoapOption): boolean =>
-            item.name === CoapMessage.Option.URI_PATH,
-        );
+      const hasExistingUri = (options || []).some(
+        (item: CoapOption): boolean =>
+          item.name === CoapMessage.Option.URI_PATH,
+      );
 
       if (uri && !hasExistingUri) {
         uriOptions = uri

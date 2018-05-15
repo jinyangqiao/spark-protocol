@@ -18,18 +18,18 @@ class MockProductFirmwareRepository implements IProductFirmwareRepository {
     throw new Error(`The method is not implemented`);
   };
 
-  getAllByProductID = (productID: string): Promise<Array<ProductFirmware>> => {
+  getAllByProductID = (productID: number): Promise<Array<ProductFirmware>> => {
     throw new Error(`The method is not implemented`);
   };
 
   getByVersionForProduct = (
-    productID: string,
+    productID: number,
     version: number,
   ): Promise<?ProductFirmware> => {
     throw new Error(`The method is not implemented`);
   };
 
-  getCurrentForProduct = (productID: string): Promise<?ProductFirmware> => {
+  getCurrentForProduct = (productID: number): Promise<?ProductFirmware> => {
     throw new Error(`The method is not implemented`);
   };
 

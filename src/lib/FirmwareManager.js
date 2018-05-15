@@ -28,9 +28,23 @@ const SPECIFICATION_KEY_BY_PLATFORM = new Map(
     })
     .filter((item: [mixed, ?string]): boolean => !!item[1]),
 );
-const FIRMWARE_VERSION = versions.find(
-  (version: Array<*>): boolean => version[1] === settings.versionNumber,
-)[0];
+const FIRMWARE_VERSION_BY_PLATFORM_ID = new Map(
+  Object.entries(
+    settings.versionNumbers,
+  ).map(([platform, version]: [string, any]): [number, string] => {
+    const specsForPlatform: any = nullthrows(
+      Object.values(specifications).find(
+        (item: any): boolean => item.productName.toLowerCase() === platform,
+      ),
+    );
+
+    const releaseVersion = versions.find(
+      (item: Array<*>): boolean => item[1] === version,
+    )[0];
+
+    return [specsForPlatform.productId, releaseVersion];
+  }),
+);
 
 class FirmwareManager {
   static getOtaSystemUpdateConfig = async (
@@ -38,6 +52,7 @@ class FirmwareManager {
   ): Promise<*> => {
     const parser = new HalDescribeParser();
     const platformID = systemInformation.p;
+
     const modules = parser
       .getModules(systemInformation)
       // Filter so we only have the system modules
@@ -47,7 +62,9 @@ class FirmwareManager {
       throw new Error('Could not find any system modules for OTA update');
     }
     const moduleToUpdate = modules.find(
-      (module: Object): boolean => module.version < FIRMWARE_VERSION,
+      (module: Object): boolean =>
+        module.version <
+        nullthrows(FIRMWARE_VERSION_BY_PLATFORM_ID.get(platformID)),
     );
 
     if (!moduleToUpdate) {
@@ -80,6 +97,11 @@ class FirmwareManager {
   static getOtaUpdateConfig(platformID: number): ?Array<OtaUpdate> {
     const platform = settings.knownPlatforms[platformID.toString()];
     const key = SPECIFICATION_KEY_BY_PLATFORM.get(platform);
+
+    // GCC Platform skip OTA Update Config
+    if (platformID === 3) {
+      return null;
+    }
 
     if (!key) {
       return null;

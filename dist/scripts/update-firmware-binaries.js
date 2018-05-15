@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 'use strict';
 
 var _extends2 = require('babel-runtime/helpers/extends');
@@ -7,6 +8,14 @@ var _extends3 = _interopRequireDefault(_extends2);
 var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
+
+var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
+
+var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
 
 var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
@@ -19,6 +28,10 @@ var _promise2 = _interopRequireDefault(_promise);
 var _stringify = require('babel-runtime/core-js/json/stringify');
 
 var _stringify2 = _interopRequireDefault(_stringify);
+
+var _values = require('babel-runtime/core-js/object/values');
+
+var _values2 = _interopRequireDefault(_values);
 
 var _fs = require('fs');
 
@@ -50,7 +63,7 @@ var _nullthrows2 = _interopRequireDefault(_nullthrows);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var GITHUB_USER = 'spark';
+var GITHUB_USER = 'particle-iot';
 
 var GITHUB_FIRMWARE_REPOSITORY = 'firmware';
 var GITHUB_CLI_REPOSITORY = 'particle-cli';
@@ -94,9 +107,12 @@ var DEFAULT_SETTINGS = {
     }
   }
 };
+
+var FIRMWARE_PLATFORMS = (0, _values2.default)(DEFAULT_SETTINGS.knownPlatforms).map(function (platform) {
+  return platform.toLowerCase();
+});
 /* eslint-enable */
 
-var versionTag = '';
 var githubAPI = new _github2.default();
 
 var exitWithMessage = function exitWithMessage(message) {
@@ -111,8 +127,13 @@ var exitWithJSON = function exitWithJSON(json) {
 var downloadFile = function downloadFile(url) {
   return new _promise2.default(function (resolve) {
     var filename = (0, _nullthrows2.default)(url.match(/.*\/(.*)/))[1];
-    console.log('Downloading ' + filename + '...');
+    if (_fs2.default.exists(filename)) {
+      console.log('File Exists: ' + filename);
+      resolve(filename);
+      return;
+    }
 
+    console.log('Downloading ' + filename + '...');
     var file = _fs2.default.createWriteStream(_settings2.default.BINARIES_DIRECTORY + '/' + filename);
 
     file.on('finish', function () {
@@ -122,14 +143,29 @@ var downloadFile = function downloadFile(url) {
   });
 };
 
+var getPlatformRegex = function getPlatformRegex(platform) {
+  return new RegExp('(system-part\\d)-.*-' + platform + '\\.bin', 'g');
+};
+
 var downloadFirmwareBinaries = function () {
-  var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(assets) {
-    var assetFileNames;
+  var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(platformReleases) {
+    var _ref2;
+
+    var assets, assetFileNames;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            _context.next = 2;
+            assets = (_ref2 = []).concat.apply(_ref2, (0, _toConsumableArray3.default)(platformReleases.map(function (_ref3) {
+              var _ref4 = (0, _slicedToArray3.default)(_ref3, 2),
+                  platform = _ref4[0],
+                  release = _ref4[1];
+
+              return release.assets.filter(function (asset) {
+                return asset.name.match(getPlatformRegex(platform));
+              });
+            })));
+            _context.next = 3;
             return _promise2.default.all(assets.map(function (asset) {
               if (asset.name.match(/^system-part/)) {
                 return downloadFile(asset.browser_download_url);
@@ -137,13 +173,17 @@ var downloadFirmwareBinaries = function () {
               return _promise2.default.resolve('');
             }));
 
-          case 2:
+          case 3:
             assetFileNames = _context.sent;
+
+
+            console.log();
+
             return _context.abrupt('return', assetFileNames.filter(function (item) {
               return !!item;
             }));
 
-          case 4:
+          case 6:
           case 'end':
             return _context.stop();
         }
@@ -156,21 +196,38 @@ var downloadFirmwareBinaries = function () {
   };
 }();
 
-var updateSettings = function updateSettings() {
-  var versionNumber = versionTag;
-  if (versionNumber[0] === 'v') {
-    versionNumber = versionNumber.substr(1);
-  }
+var updateSettings = function updateSettings(platformReleases) {
+  var settingsBinaries = [];
+  var versionNumbers = {};
+  platformReleases.forEach(function (_ref5) {
+    var _ref6 = (0, _slicedToArray3.default)(_ref5, 2),
+        platform = _ref6[0],
+        release = _ref6[1];
 
+    var versionNumber = release.tag_name;
+    if (versionNumber[0] === 'v') {
+      versionNumber = versionNumber.substr(1);
+    }
+    versionNumbers[platform] = versionNumber;
+  });
   var scriptSettings = (0, _stringify2.default)((0, _extends3.default)({
-    versionNumber: versionNumber
+    versionNumbers: versionNumbers
   }, DEFAULT_SETTINGS), null, 2);
 
-  var settingsBinaries = [];
-  scriptSettings = scriptSettings.replace(/(system-part\d-).*(-.*.bin)/g, function (filename, part, device) {
-    var newFilename = part + versionNumber + device;
-    settingsBinaries.push(newFilename);
-    return newFilename;
+  platformReleases.forEach(function (_ref7) {
+    var _ref8 = (0, _slicedToArray3.default)(_ref7, 2),
+        platform = _ref8[0],
+        release = _ref8[1];
+
+    var versionNumber = release.tag_name;
+    if (versionNumber[0] === 'v') {
+      versionNumber = versionNumber.substr(1);
+    }
+    scriptSettings = scriptSettings.replace(getPlatformRegex(platform), function (filename, systemPart) {
+      var newFilename = systemPart + '-' + versionNumber + '-' + platform + '.bin';
+      settingsBinaries.push(newFilename);
+      return newFilename;
+    });
   });
 
   _fs2.default.writeFileSync(SETTINGS_FILE, scriptSettings);
@@ -188,7 +245,7 @@ var verifyBinariesMatch = function verifyBinariesMatch(downloadedBinaries, setti
 };
 
 var downloadAppBinaries = function () {
-  var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+  var _ref9 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
     var assets;
     return _regenerator2.default.wrap(function _callee2$(_context2) {
       while (1) {
@@ -197,7 +254,7 @@ var downloadAppBinaries = function () {
             _context2.next = 2;
             return githubAPI.repos.getContent({
               owner: GITHUB_USER,
-              path: 'binaries',
+              path: 'assets/binaries',
               repo: GITHUB_CLI_REPOSITORY
             });
 
@@ -220,23 +277,16 @@ var downloadAppBinaries = function () {
   }));
 
   return function downloadAppBinaries() {
-    return _ref2.apply(this, arguments);
+    return _ref9.apply(this, arguments);
   };
 }();
 
 (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3() {
-  var releases, release, downloadedBinaries, settingsBinaries, specificationsResponse, versionResponse, versionText, mapping;
+  var releases, platformReleases, downloadedBinaries, settingsBinaries, specificationsResponse, versionResponse, versionText, mapping;
   return _regenerator2.default.wrap(function _callee3$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
-          // Start running process. If you pass `0.6.0` it will install that version of
-          // the firmware.
-          versionTag = process.argv[2];
-          if (versionTag && versionTag[0] !== 'v') {
-            versionTag = 'v' + versionTag;
-          }
-
           if (!_fs2.default.existsSync(_settings2.default.BINARIES_DIRECTORY)) {
             _mkdirp2.default.sync(_settings2.default.BINARIES_DIRECTORY);
           }
@@ -245,16 +295,11 @@ var downloadAppBinaries = function () {
           }
 
           // Download app binaries
-          _context3.next = 6;
+          _context3.next = 4;
           return downloadAppBinaries();
 
-        case 6:
-          if (!(process.argv.length !== 3)) {
-            _context3.next = 13;
-            break;
-          }
-
-          _context3.next = 9;
+        case 4:
+          _context3.next = 6;
           return githubAPI.repos.getReleases({
             owner: GITHUB_USER,
             page: 0,
@@ -262,7 +307,7 @@ var downloadAppBinaries = function () {
             repo: GITHUB_FIRMWARE_REPOSITORY
           });
 
-        case 9:
+        case 6:
           releases = _context3.sent;
 
           releases = releases.filter(function (release
@@ -281,63 +326,62 @@ var downloadAppBinaries = function () {
             return 0;
           });
 
-          versionTag = releases[0].tag_name;
+          platformReleases = FIRMWARE_PLATFORMS.map(function (platform) {
+            var existingRelease = releases.find(function (release) {
+              return release.assets.some(function (asset) {
+                return !!asset.name.match(getPlatformRegex(platform));
+              });
+            });
 
-        case 13:
-          _context3.next = 15;
-          return githubAPI.repos.getReleaseByTag({
-            owner: GITHUB_USER,
-            repo: GITHUB_FIRMWARE_REPOSITORY,
-            tag: versionTag
+            return [platform, existingRelease];
+          }).filter(function (item) {
+            return !!item[1];
           });
+          _context3.next = 12;
+          return downloadFirmwareBinaries(platformReleases);
+
+        case 12:
+          downloadedBinaries = _context3.sent;
+          _context3.next = 15;
+          return updateSettings(platformReleases);
 
         case 15:
-          release = _context3.sent;
-          _context3.next = 18;
-          return downloadFirmwareBinaries(release.assets);
-
-        case 18:
-          downloadedBinaries = _context3.sent;
-          _context3.next = 21;
-          return updateSettings();
-
-        case 21:
           settingsBinaries = _context3.sent;
 
           verifyBinariesMatch(downloadedBinaries, settingsBinaries);
 
-          _context3.next = 25;
+          _context3.next = 19;
           return githubAPI.repos.getContent({
             owner: GITHUB_USER,
-            path: 'oldlib/deviceSpecs/specifications.js',
+            path: 'src/lib/deviceSpecs/specifications.js',
             repo: GITHUB_CLI_REPOSITORY
           });
 
-        case 25:
+        case 19:
           specificationsResponse = _context3.sent;
 
 
           _fs2.default.writeFileSync(SPECIFICATIONS_FILE, new Buffer(specificationsResponse.content, 'base64').toString());
 
-          _context3.next = 29;
+          _context3.next = 23;
           return githubAPI.repos.getContent({
             owner: GITHUB_USER,
             path: 'system/system-versions.md',
             repo: GITHUB_FIRMWARE_REPOSITORY
           });
 
-        case 29:
+        case 23:
           versionResponse = _context3.sent;
           versionText = new Buffer(versionResponse.content, 'base64').toString() || '';
 
           if (versionText) {
-            _context3.next = 33;
+            _context3.next = 27;
             break;
           }
 
           throw new Error("can't download system-versions file");
 
-        case 33:
+        case 27:
           mapping = (0, _nullthrows2.default)(versionText.match(/^\|[^\n]*/gim)).map(function (line) {
             return line.split('|').slice(2, 5);
           }).filter(function (arr) {
@@ -347,18 +391,18 @@ var downloadAppBinaries = function () {
           });
 
           if (!(mapping.length === 0)) {
-            _context3.next = 36;
+            _context3.next = 30;
             break;
           }
 
           throw new Error('cant parse system-versions from ' + 'https://github.com/spark/firmware/blob/develop/system/system-versions.md');
 
-        case 36:
+        case 30:
           _fs2.default.writeFileSync(MAPPING_FILE, (0, _stringify2.default)(mapping, null, 2));
 
           console.log('\r\nCompleted Sync');
 
-        case 38:
+        case 32:
         case 'end':
           return _context3.stop();
       }

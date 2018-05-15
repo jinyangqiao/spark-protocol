@@ -90,9 +90,21 @@ var SPECIFICATION_KEY_BY_PLATFORM = new _map2.default((0, _values2.default)(_set
 }).filter(function (item) {
   return !!item[1];
 }));
-var FIRMWARE_VERSION = _versions2.default.find(function (version) {
-  return version[1] === _settings4.default.versionNumber;
-})[0];
+var FIRMWARE_VERSION_BY_PLATFORM_ID = new _map2.default((0, _entries2.default)(_settings4.default.versionNumbers).map(function (_ref3) {
+  var _ref4 = (0, _slicedToArray3.default)(_ref3, 2),
+      platform = _ref4[0],
+      version = _ref4[1];
+
+  var specsForPlatform = (0, _nullthrows2.default)((0, _values2.default)(_specifications2.default).find(function (item) {
+    return item.productName.toLowerCase() === platform;
+  }));
+
+  var releaseVersion = _versions2.default.find(function (item) {
+    return item[1] === version;
+  })[0];
+
+  return [specsForPlatform.productId, releaseVersion];
+}));
 
 var FirmwareManager = (_temp = _class = function () {
   function FirmwareManager() {
@@ -108,6 +120,11 @@ var FirmwareManager = (_temp = _class = function () {
     value: function getOtaUpdateConfig(platformID) {
       var platform = _settings4.default.knownPlatforms[platformID.toString()];
       var key = SPECIFICATION_KEY_BY_PLATFORM.get(platform);
+
+      // GCC Platform skip OTA Update Config
+      if (platformID === 3) {
+        return null;
+      }
 
       if (!key) {
         return null;
@@ -128,7 +145,7 @@ var FirmwareManager = (_temp = _class = function () {
   }]);
   return FirmwareManager;
 }(), _class.getOtaSystemUpdateConfig = function () {
-  var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(systemInformation) {
+  var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(systemInformation) {
     var parser, platformID, modules, moduleToUpdate, otaUpdateConfig, moduleIndex, config, systemFile;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
@@ -151,7 +168,7 @@ var FirmwareManager = (_temp = _class = function () {
 
           case 5:
             moduleToUpdate = modules.find(function (module) {
-              return module.version < FIRMWARE_VERSION;
+              return module.version < (0, _nullthrows2.default)(FIRMWARE_VERSION_BY_PLATFORM_ID.get(platformID));
             });
 
             if (moduleToUpdate) {
@@ -198,7 +215,7 @@ var FirmwareManager = (_temp = _class = function () {
   }));
 
   return function (_x) {
-    return _ref3.apply(this, arguments);
+    return _ref5.apply(this, arguments);
   };
 }(), _class.getAppModule = function (systemInformation) {
   var parser = new _binaryVersionReader.HalDescribeParser();

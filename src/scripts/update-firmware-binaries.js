@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 // @flow
 
 import fs from 'fs';
@@ -8,18 +9,18 @@ import request from 'request';
 import settings from '../settings';
 import nullthrows from 'nullthrows';
 
-type Asset = {
-  browser_download_url: string,
-  name: string,
-};
-
-const GITHUB_USER = 'spark';
+const GITHUB_USER = 'particle-iot';
 const GITHUB_FIRMWARE_REPOSITORY = 'firmware';
 const GITHUB_CLI_REPOSITORY = 'particle-cli';
 const FILE_GEN_DIRECTORY = path.join(__dirname, '../../third-party/');
 const MAPPING_FILE = `${FILE_GEN_DIRECTORY}versions.json`;
 const SPECIFICATIONS_FILE = `${FILE_GEN_DIRECTORY}specifications.js`;
 const SETTINGS_FILE = `${FILE_GEN_DIRECTORY}settings.json`;
+
+type Asset = {
+  browser_download_url: string,
+  name: string,
+};
 
 // This default is here so that the regex will work when updating these files.
 /* eslint-disable */
@@ -56,9 +57,12 @@ const DEFAULT_SETTINGS = {
     },
   },
 };
+
+const FIRMWARE_PLATFORMS = Object.values(
+  DEFAULT_SETTINGS.knownPlatforms,
+).map(platform => (platform: any).toLowerCase());
 /* eslint-enable */
 
-let versionTag = '';
 const githubAPI = new Github();
 
 const exitWithMessage = (message: string) => {
@@ -73,8 +77,13 @@ const exitWithJSON = (json: Object) => {
 const downloadFile = (url: string): Promise<*> =>
   new Promise((resolve: (filename: string) => void) => {
     const filename = nullthrows(url.match(/.*\/(.*)/))[1];
-    console.log(`Downloading ${filename}...`);
+    if (fs.exists(filename)) {
+      console.log(`File Exists: ${filename}`);
+      resolve(filename);
+      return;
+    }
 
+    console.log(`Downloading ${filename}...`);
     const file = fs.createWriteStream(
       `${settings.BINARIES_DIRECTORY}/${filename}`,
     );
@@ -82,12 +91,27 @@ const downloadFile = (url: string): Promise<*> =>
     file.on('finish', () => {
       resolve(filename);
     });
-    request(url).pipe(file).on('error', exitWithJSON);
+    request(url)
+      .pipe(file)
+      .on('error', exitWithJSON);
   });
 
+const getPlatformRegex = (platform: string): RegExp =>
+  new RegExp(`(system-part\\d)-.*-${platform}\\.bin`, 'g');
+
 const downloadFirmwareBinaries = async (
-  assets: Array<Asset>,
+  platformReleases: Array<[string, Object]>,
 ): Promise<Array<string>> => {
+  const assets = [].concat(
+    ...platformReleases.map(([platform, release]: [string, Object]): Array<
+      Object,
+    > =>
+      release.assets.filter((asset: Object): boolean =>
+        asset.name.match(getPlatformRegex(platform)),
+      ),
+    ),
+  );
+
   const assetFileNames = await Promise.all(
     assets.map((asset: Object): Promise<string> => {
       if (asset.name.match(/^system-part/)) {
@@ -97,33 +121,46 @@ const downloadFirmwareBinaries = async (
     }),
   );
 
+  console.log();
+
   return assetFileNames.filter((item: ?string): boolean => !!item);
 };
 
-const updateSettings = (): Array<string> => {
-  let versionNumber = versionTag;
-  if (versionNumber[0] === 'v') {
-    versionNumber = versionNumber.substr(1);
-  }
-
+const updateSettings = (
+  platformReleases: Array<[string, Object]>,
+): Array<string> => {
+  const settingsBinaries = [];
+  const versionNumbers = {};
+  platformReleases.forEach(([platform, release]: [string, Object]) => {
+    let versionNumber = release.tag_name;
+    if (versionNumber[0] === 'v') {
+      versionNumber = versionNumber.substr(1);
+    }
+    versionNumbers[platform] = versionNumber;
+  });
   let scriptSettings = JSON.stringify(
     {
-      versionNumber,
+      versionNumbers,
       ...DEFAULT_SETTINGS,
     },
     null,
     2,
   );
 
-  const settingsBinaries = [];
-  scriptSettings = scriptSettings.replace(
-    /(system-part\d-).*(-.*.bin)/g,
-    (filename: string, part: string, device: string): string => {
-      const newFilename = part + versionNumber + device;
-      settingsBinaries.push(newFilename);
-      return newFilename;
-    },
-  );
+  platformReleases.forEach(([platform, release]: [string, Object]) => {
+    let versionNumber = release.tag_name;
+    if (versionNumber[0] === 'v') {
+      versionNumber = versionNumber.substr(1);
+    }
+    scriptSettings = scriptSettings.replace(
+      getPlatformRegex(platform),
+      (filename: string, systemPart: string): string => {
+        const newFilename = `${systemPart}-${versionNumber}-${platform}.bin`;
+        settingsBinaries.push(newFilename);
+        return newFilename;
+      },
+    );
+  });
 
   fs.writeFileSync(SETTINGS_FILE, scriptSettings);
   console.log('Updated settings');
@@ -151,7 +188,7 @@ const verifyBinariesMatch = (
 const downloadAppBinaries = async (): Promise<*> => {
   const assets = await githubAPI.repos.getContent({
     owner: GITHUB_USER,
-    path: 'binaries',
+    path: 'assets/binaries',
     repo: GITHUB_CLI_REPOSITORY,
   });
 
@@ -163,13 +200,6 @@ const downloadAppBinaries = async (): Promise<*> => {
 };
 
 (async (): Promise<*> => {
-  // Start running process. If you pass `0.6.0` it will install that version of
-  // the firmware.
-  versionTag = process.argv[2];
-  if (versionTag && versionTag[0] !== 'v') {
-    versionTag = `v${versionTag}`;
-  }
-
   if (!fs.existsSync(settings.BINARIES_DIRECTORY)) {
     mkdirp.sync(settings.BINARIES_DIRECTORY);
   }
@@ -181,47 +211,51 @@ const downloadAppBinaries = async (): Promise<*> => {
   await downloadAppBinaries();
 
   // Download firmware binaries
-  if (process.argv.length !== 3) {
-    let releases = await githubAPI.repos.getReleases({
-      owner: GITHUB_USER,
-      page: 0,
-      perPage: 30,
-      repo: GITHUB_FIRMWARE_REPOSITORY,
-    });
-    releases = releases.filter(
-      (release: Object): boolean =>
-        // Don't use release candidates.. we only need main releases.
-        !release.tag_name.includes('-rc') &&
-        !release.tag_name.includes('-pi') &&
-        release.assets.length > 2,
-    );
-
-    releases.sort((a: Object, b: Object): number => {
-      if (a.tag_name < b.tag_name) {
-        return 1;
-      }
-      if (a.tag_name > b.tag_name) {
-        return -1;
-      }
-      return 0;
-    });
-
-    versionTag = releases[0].tag_name;
-  }
-
-  const release = await githubAPI.repos.getReleaseByTag({
+  let releases = await githubAPI.repos.getReleases({
     owner: GITHUB_USER,
+    page: 0,
+    perPage: 30,
     repo: GITHUB_FIRMWARE_REPOSITORY,
-    tag: versionTag,
+  });
+  releases = releases.filter(
+    (release: Object): boolean =>
+      // Don't use release candidates.. we only need main releases.
+      !release.tag_name.includes('-rc') &&
+      !release.tag_name.includes('-pi') &&
+      release.assets.length > 2,
+  );
+
+  releases.sort((a: Object, b: Object): number => {
+    if (a.tag_name < b.tag_name) {
+      return 1;
+    }
+    if (a.tag_name > b.tag_name) {
+      return -1;
+    }
+    return 0;
   });
 
-  const downloadedBinaries = await downloadFirmwareBinaries(release.assets);
-  const settingsBinaries = await updateSettings();
+  const platformReleases = FIRMWARE_PLATFORMS.map((platform: string): [
+    string,
+    Object,
+  ] => {
+    const existingRelease = releases.find((release: Object): boolean =>
+      release.assets.some(
+        (asset: Asset): boolean =>
+          !!asset.name.match(getPlatformRegex(platform)),
+      ),
+    );
+
+    return [platform, existingRelease];
+  }).filter((item: [string, Object]): boolean => !!item[1]);
+
+  const downloadedBinaries = await downloadFirmwareBinaries(platformReleases);
+  const settingsBinaries = await updateSettings(platformReleases);
   verifyBinariesMatch(downloadedBinaries, settingsBinaries);
 
   const specificationsResponse = await githubAPI.repos.getContent({
     owner: GITHUB_USER,
-    path: 'oldlib/deviceSpecs/specifications.js',
+    path: 'src/lib/deviceSpecs/specifications.js',
     repo: GITHUB_CLI_REPOSITORY,
   });
 

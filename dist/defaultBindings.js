@@ -69,9 +69,11 @@ var defaultBindings = function defaultBindings(container, serverSettings) {
 
   // Repository
   container.bindClass('IDeviceAttributeRepository', _DeviceAttributeFileRepository2.default, ['DEVICE_DIRECTORY']);
+
   container.bindClass('IDeviceKeyRepository', _DeviceKeyFileRepository2.default, ['DEVICE_DIRECTORY']);
   container.bindClass('IProductDeviceRepository', _MockProductDeviceRepository2.default);
   container.bindClass('IProductFirmwareRepository', _MockProductFirmwareRepository2.default);
+
   container.bindClass('ServerKeyRepository', _ServerKeyFileRepository2.default, ['SERVER_KEYS_DIRECTORY', 'SERVER_KEY_FILENAME']);
 
   // Utils

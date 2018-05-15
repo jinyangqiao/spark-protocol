@@ -23,7 +23,7 @@ class MockProductDeviceRepository implements IProductDeviceRepository {
   };
 
   getAllByProductID = (
-    productID: string,
+    productID: number,
     page: number,
     perPage: number,
   ): Promise<Array<ProductDevice>> => {

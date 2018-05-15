@@ -18,7 +18,7 @@
 *
 */
 
-import type { Event, EventData, PublishOptions } from '../types';
+import type { EventData, ProtocolEvent, PublishOptions } from '../types';
 
 import EventEmitter from 'events';
 import nullthrows from 'nullthrows';
@@ -50,7 +50,7 @@ type SubscriptionOptions = {
 type Subscription = {
   eventNamePrefix: string,
   id: string,
-  listener: (event: Event) => void | Promise<void>,
+  listener: (event: ProtocolEvent) => void | Promise<void>,
   options: SubscriptionOptions,
 };
 
@@ -69,7 +69,7 @@ class EventPublisher extends EventEmitter {
         ? eventData.ttl
         : settings.DEFAULT_EVENT_TTL;
 
-    const event: Event = {
+    const event: ProtocolEvent = {
       ...eventData,
       ...options,
       publishedAt: new Date(),
@@ -92,8 +92,11 @@ class EventPublisher extends EventEmitter {
     const responseEventName = `${eventData.name}/response/${eventID}`;
 
     return new Promise(
-      (resolve: (event: Event) => void, reject: (error: Error) => void) => {
-        const responseListener = (event: Event): void =>
+      (
+        resolve: (event: ProtocolEvent) => void,
+        reject: (error: Error) => void,
+      ) => {
+        const responseListener = (event: ProtocolEvent): void =>
           resolve(nullthrows(event.context));
 
         this.subscribe(responseEventName, responseListener, {
@@ -123,7 +126,7 @@ class EventPublisher extends EventEmitter {
 
   subscribe = (
     eventNamePrefix: string = '*',
-    eventHandler: (event: Event) => void | Promise<void>,
+    eventHandler: (event: ProtocolEvent) => void | Promise<void>,
     options?: SubscriptionOptions = {},
   ): string => {
     const {
@@ -160,7 +163,7 @@ class EventPublisher extends EventEmitter {
     }
 
     if (once) {
-      this.once(eventNamePrefix, (event: Event) => {
+      this.once(eventNamePrefix, (event: ProtocolEvent) => {
         this._subscriptionsByID.delete(subscriptionID);
         listener(event);
       });
@@ -189,7 +192,7 @@ class EventPublisher extends EventEmitter {
     });
   };
 
-  _emitWithPrefix = (eventName: string, event: Event) => {
+  _emitWithPrefix = (eventName: string, event: ProtocolEvent) => {
     this.eventNames()
       .filter((eventNamePrefix: string): boolean =>
         eventName.startsWith(eventNamePrefix),
@@ -200,9 +203,9 @@ class EventPublisher extends EventEmitter {
   };
 
   _filterEvents = (
-    eventHandler: (event: Event) => void | Promise<void>,
+    eventHandler: (event: ProtocolEvent) => void | Promise<void>,
     filterOptions: FilterOptions,
-  ): ((event: Event) => void) => (event: Event) => {
+  ): ((event: ProtocolEvent) => void) => (event: ProtocolEvent) => {
     if (event.isInternal && filterOptions.listenToInternalEvents === false) {
       return;
     }

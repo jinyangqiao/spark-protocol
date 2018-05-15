@@ -14,11 +14,11 @@ import ServerKeyFileRepository from './repository/ServerKeyFileRepository';
 import protocolSettings from './settings';
 
 type ServerSettings = {
-  BINARIES_DIRECTORY: string,
+  BINARIES_DIRECTORY?: string,
   DEVICE_DIRECTORY: string,
   ENABLE_SYSTEM_FIRWMARE_AUTOUPDATES: boolean,
   SERVER_KEY_FILENAME: string,
-  SERVER_KEY_PASSWORD: ?string,
+  SERVER_KEY_PASSWORD?: string,
   SERVER_KEYS_DIRECTORY: string,
   TCP_DEVICE_SERVER_CONFIG: {
     HOST: string,
@@ -61,6 +61,7 @@ const defaultBindings = (
     DeviceAttributeFileRepository,
     ['DEVICE_DIRECTORY'],
   );
+
   container.bindClass('IDeviceKeyRepository', DeviceKeyFileRepository, [
     'DEVICE_DIRECTORY',
   ]);
@@ -69,6 +70,7 @@ const defaultBindings = (
     'IProductFirmwareRepository',
     MockProductFirmwareRepository,
   );
+
   container.bindClass('ServerKeyRepository', ServerKeyFileRepository, [
     'SERVER_KEYS_DIRECTORY',
     'SERVER_KEY_FILENAME',
