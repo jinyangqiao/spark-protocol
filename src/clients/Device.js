@@ -1019,7 +1019,7 @@ class Device extends EventEmitter {
     this.sendMessage(
       messageName,
       {
-        event_name: name.toString(),
+        event_name: name,
       },
       [
         {

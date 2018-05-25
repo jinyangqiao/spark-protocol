@@ -54,6 +54,7 @@
     ]
   },
   "dependencies": {
+    "@octokit/rest": "^15.6.0",
     "babel-plugin-transform-decorators": "^6.24.1",
     "binary-version-reader": "^0.5.2",
     "buffer-crc32": "~0.2.3",
@@ -62,8 +63,8 @@
     "coap-packet": "^0.1.14",
     "compact-array": "0.0.1",
     "constitute": "^1.6.2",
+    "dotenv": "^5.0.1",
     "ec-key": "0.0.2",
-    "github": "^8.1.0",
     "hogan.js": "*",
     "memoizee": "^0.4.11",
     "mkdirp": "^0.5.1",

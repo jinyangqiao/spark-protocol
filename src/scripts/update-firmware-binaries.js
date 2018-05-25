@@ -3,22 +3,24 @@
 
 import fs from 'fs';
 import path from 'path';
-import Github from 'github';
+import Github from '@octokit/rest';
 import mkdirp from 'mkdirp';
-import request from 'request';
 import settings from '../settings';
 import nullthrows from 'nullthrows';
+import { HalModuleParser } from 'binary-version-reader';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const GITHUB_USER = 'particle-iot';
 const GITHUB_FIRMWARE_REPOSITORY = 'firmware';
 const GITHUB_CLI_REPOSITORY = 'particle-cli';
 const FILE_GEN_DIRECTORY = path.join(__dirname, '../../third-party/');
-const MAPPING_FILE = `${FILE_GEN_DIRECTORY}versions.json`;
-const SPECIFICATIONS_FILE = `${FILE_GEN_DIRECTORY}specifications.js`;
 const SETTINGS_FILE = `${FILE_GEN_DIRECTORY}settings.json`;
 
 type Asset = {
   browser_download_url: string,
+  id: string,
   name: string,
 };
 
@@ -58,64 +60,97 @@ const DEFAULT_SETTINGS = {
   },
 };
 
-const FIRMWARE_PLATFORMS = Object.values(
-  DEFAULT_SETTINGS.knownPlatforms,
-).map(platform => (platform: any).toLowerCase());
+const FIRMWARE_PLATFORMS = Object.values(DEFAULT_SETTINGS.knownPlatforms).map(
+  platform => (platform: any).toLowerCase(),
+);
 /* eslint-enable */
 
 const githubAPI = new Github();
 
-const exitWithMessage = (message: string) => {
-  console.log(message);
-  process.exit(0);
-};
+const {
+  GITHUB_AUTH_PASSWORD,
+  GITHUB_AUTH_TYPE,
+  GITHUB_AUTH_TOKEN,
+  GITHUB_AUTH_USERNAME,
+} = process.env;
 
-const exitWithJSON = (json: Object) => {
-  exitWithMessage(JSON.stringify(json, null, 2));
-};
+if (!GITHUB_AUTH_TYPE) {
+  throw new Error('You need to set up a .env file with auth credentials');
+}
 
-const downloadFile = (url: string): Promise<*> =>
-  new Promise((resolve: (filename: string) => void) => {
-    const filename = nullthrows(url.match(/.*\/(.*)/))[1];
-    if (fs.exists(filename)) {
-      console.log(`File Exists: ${filename}`);
-      resolve(filename);
-      return;
-    }
-
-    console.log(`Downloading ${filename}...`);
-    const file = fs.createWriteStream(
-      `${settings.BINARIES_DIRECTORY}/${filename}`,
-    );
-
-    file.on('finish', () => {
-      resolve(filename);
-    });
-    request(url)
-      .pipe(file)
-      .on('error', exitWithJSON);
+if (GITHUB_AUTH_TYPE === 'oauth') {
+  githubAPI.authenticate({
+    token: GITHUB_AUTH_TOKEN,
+    type: GITHUB_AUTH_TYPE,
   });
+} else {
+  githubAPI.authenticate({
+    password: GITHUB_AUTH_PASSWORD,
+    type: GITHUB_AUTH_TYPE,
+    username: GITHUB_AUTH_USERNAME,
+  });
+}
 
-const getPlatformRegex = (platform: string): RegExp =>
-  new RegExp(`(system-part\\d)-.*-${platform}\\.bin`, 'g');
+const downloadAssetFile = async (asset: Asset): Promise<*> => {
+  const url = asset.browser_download_url;
+  const filename = nullthrows(url.match(/.*\/(.*)/))[1];
+  const fileWithPath = `${settings.BINARIES_DIRECTORY}/${filename}`;
+  if (fs.existsSync(fileWithPath)) {
+    console.log(`File Exists: ${filename}`);
+    return filename;
+  }
+
+  console.log(`Downloading ${filename}...`);
+
+  return githubAPI.repos
+    .getAsset({
+      headers: {
+        accept: 'application/octet-stream',
+      },
+      id: asset.id,
+      owner: GITHUB_USER,
+      repo: GITHUB_FIRMWARE_REPOSITORY,
+    })
+    .then((response: any): string => {
+      fs.writeFileSync(fileWithPath, response.data);
+      return filename;
+    })
+    .catch((error: Error): void => console.error(asset, error));
+};
+
+const downloadBlob = async (asset: any): Promise<*> => {
+  const filename = asset.name;
+  const fileWithPath = `${settings.BINARIES_DIRECTORY}/${filename}`;
+  if (fs.existsSync(fileWithPath)) {
+    console.log(`File Exists: ${filename}`);
+    return filename;
+  }
+
+  console.log(`Downloading ${filename}...`);
+
+  return githubAPI.gitdata
+    .getBlob({
+      headers: {
+        accept: 'application/vnd.github.v3.raw',
+      },
+      owner: GITHUB_USER,
+      repo: GITHUB_CLI_REPOSITORY,
+      sha: asset.sha,
+    })
+    .then((response: any): string => {
+      fs.writeFileSync(fileWithPath, response.data);
+      return filename;
+    })
+    .catch((error: Error): void => console.error(error));
+};
 
 const downloadFirmwareBinaries = async (
-  platformReleases: Array<[string, Object]>,
+  assets: Array<Asset>,
 ): Promise<Array<string>> => {
-  const assets = [].concat(
-    ...platformReleases.map(([platform, release]: [string, Object]): Array<
-      Object,
-    > =>
-      release.assets.filter((asset: Object): boolean =>
-        asset.name.match(getPlatformRegex(platform)),
-      ),
-    ),
-  );
-
   const assetFileNames = await Promise.all(
     assets.map((asset: Object): Promise<string> => {
-      if (asset.name.match(/^system-part/)) {
-        return downloadFile(asset.browser_download_url);
+      if (asset.name.match(/^(system-part|bootloader)/)) {
+        return downloadAssetFile(asset);
       }
       return Promise.resolve('');
     }),
@@ -126,63 +161,33 @@ const downloadFirmwareBinaries = async (
   return assetFileNames.filter((item: ?string): boolean => !!item);
 };
 
-const updateSettings = (
-  platformReleases: Array<[string, Object]>,
-): Array<string> => {
-  const settingsBinaries = [];
-  const versionNumbers = {};
-  platformReleases.forEach(([platform, release]: [string, Object]) => {
-    let versionNumber = release.tag_name;
-    if (versionNumber[0] === 'v') {
-      versionNumber = versionNumber.substr(1);
-    }
-    versionNumbers[platform] = versionNumber;
-  });
-  let scriptSettings = JSON.stringify(
-    {
-      versionNumbers,
-      ...DEFAULT_SETTINGS,
-    },
-    null,
-    2,
+const updateSettings = async (
+  binaryFileNames: Array<string>,
+): Promise<void> => {
+  const parser = new HalModuleParser();
+
+  const moduleInfos = await Promise.all(
+    binaryFileNames.map(
+      (filename: string): Promise<any> =>
+        new Promise((resolve: (result: any) => void): void =>
+          parser.parseFile(
+            `${settings.BINARIES_DIRECTORY}/${filename}`,
+            (result: any) => {
+              resolve({
+                ...result,
+                fileBuffer: undefined,
+                filename,
+              });
+            },
+          ),
+        ),
+    ),
   );
 
-  platformReleases.forEach(([platform, release]: [string, Object]) => {
-    let versionNumber = release.tag_name;
-    if (versionNumber[0] === 'v') {
-      versionNumber = versionNumber.substr(1);
-    }
-    scriptSettings = scriptSettings.replace(
-      getPlatformRegex(platform),
-      (filename: string, systemPart: string): string => {
-        const newFilename = `${systemPart}-${versionNumber}-${platform}.bin`;
-        settingsBinaries.push(newFilename);
-        return newFilename;
-      },
-    );
-  });
+  const scriptSettings = JSON.stringify(moduleInfos, null, 2);
 
   fs.writeFileSync(SETTINGS_FILE, scriptSettings);
   console.log('Updated settings');
-
-  return settingsBinaries;
-};
-
-const verifyBinariesMatch = (
-  downloadedBinaries: Array<string>,
-  settingsBinaries: Array<string>,
-) => {
-  if (
-    JSON.stringify(downloadedBinaries.sort()) !==
-    JSON.stringify(settingsBinaries.sort())
-  ) {
-    console.log(
-      "\n\nWARNING: the list of downloaded binaries doesn't match the list " +
-        'of binaries in settings.js',
-    );
-    console.log('Downloaded:  ', downloadedBinaries);
-    console.log('settings.js: ', settingsBinaries);
-  }
 };
 
 const downloadAppBinaries = async (): Promise<*> => {
@@ -191,106 +196,53 @@ const downloadAppBinaries = async (): Promise<*> => {
     path: 'assets/binaries',
     repo: GITHUB_CLI_REPOSITORY,
   });
-
   return await Promise.all(
-    assets.map((asset: Object): Promise<string> =>
-      downloadFile(asset.download_url),
-    ),
+    assets.data.map((asset: Object): Promise<string> => downloadBlob(asset)),
   );
 };
 
 (async (): Promise<*> => {
-  if (!fs.existsSync(settings.BINARIES_DIRECTORY)) {
-    mkdirp.sync(settings.BINARIES_DIRECTORY);
-  }
-  if (!fs.existsSync(FILE_GEN_DIRECTORY)) {
-    mkdirp.sync(FILE_GEN_DIRECTORY);
-  }
-
-  // Download app binaries
-  await downloadAppBinaries();
-
-  // Download firmware binaries
-  let releases = await githubAPI.repos.getReleases({
-    owner: GITHUB_USER,
-    page: 0,
-    perPage: 30,
-    repo: GITHUB_FIRMWARE_REPOSITORY,
-  });
-  releases = releases.filter(
-    (release: Object): boolean =>
-      // Don't use release candidates.. we only need main releases.
-      !release.tag_name.includes('-rc') &&
-      !release.tag_name.includes('-pi') &&
-      release.assets.length > 2,
-  );
-
-  releases.sort((a: Object, b: Object): number => {
-    if (a.tag_name < b.tag_name) {
-      return 1;
+  try {
+    if (!fs.existsSync(settings.BINARIES_DIRECTORY)) {
+      mkdirp.sync(settings.BINARIES_DIRECTORY);
     }
-    if (a.tag_name > b.tag_name) {
-      return -1;
+    if (!fs.existsSync(FILE_GEN_DIRECTORY)) {
+      mkdirp.sync(FILE_GEN_DIRECTORY);
     }
-    return 0;
-  });
 
-  const platformReleases = FIRMWARE_PLATFORMS.map((platform: string): [
-    string,
-    Object,
-  ] => {
-    const existingRelease = releases.find((release: Object): boolean =>
-      release.assets.some(
-        (asset: Asset): boolean =>
-          !!asset.name.match(getPlatformRegex(platform)),
-      ),
+    try {
+      // Download app binaries
+      await downloadAppBinaries();
+    } catch (error) {
+      console.error(error);
+    }
+    // Download firmware binaries
+    const releases = await githubAPI.repos.getReleases({
+      owner: GITHUB_USER,
+      page: 0,
+      perPage: 30,
+      repo: GITHUB_FIRMWARE_REPOSITORY,
+    });
+
+    releases.data.sort((a: Object, b: Object): number => {
+      if (a.tag_name < b.tag_name) {
+        return 1;
+      }
+      if (a.tag_name > b.tag_name) {
+        return -1;
+      }
+      return 0;
+    });
+
+    const assets = [].concat(
+      ...releases.data.map((release: any): Array<any> => release.assets),
     );
 
-    return [platform, existingRelease];
-  }).filter((item: [string, Object]): boolean => !!item[1]);
+    const downloadedBinaries = await downloadFirmwareBinaries(assets);
+    await updateSettings(downloadedBinaries);
 
-  const downloadedBinaries = await downloadFirmwareBinaries(platformReleases);
-  const settingsBinaries = await updateSettings(platformReleases);
-  verifyBinariesMatch(downloadedBinaries, settingsBinaries);
-
-  const specificationsResponse = await githubAPI.repos.getContent({
-    owner: GITHUB_USER,
-    path: 'src/lib/deviceSpecs/specifications.js',
-    repo: GITHUB_CLI_REPOSITORY,
-  });
-
-  fs.writeFileSync(
-    SPECIFICATIONS_FILE,
-    new Buffer(specificationsResponse.content, 'base64').toString(),
-  );
-
-  const versionResponse = await githubAPI.repos.getContent({
-    owner: GITHUB_USER,
-    path: 'system/system-versions.md',
-    repo: GITHUB_FIRMWARE_REPOSITORY,
-  });
-
-  const versionText =
-    new Buffer(versionResponse.content, 'base64').toString() || '';
-  if (!versionText) {
-    throw new Error("can't download system-versions file");
+    console.log('\r\nCompleted Sync');
+  } catch (err) {
+    console.log(err);
   }
-
-  const mapping = nullthrows(versionText.match(/^\|[^\n]*/gim))
-    .map((line: string): Array<string> => line.split('|').slice(2, 5))
-    .filter((arr: Array<string>): boolean => !isNaN(parseInt(arr[0], 10)))
-    .map((versionData: Array<string>): Array<string> => [
-      versionData[0].replace(/\s+/g, ''),
-      versionData[1].replace(/\s+/g, ''),
-    ]);
-
-  if (mapping.length === 0) {
-    throw new Error(
-      'cant parse system-versions from ' +
-        'https://github.com/spark/firmware/blob/develop/system/system-versions.md',
-    );
-  }
-  fs.writeFileSync(MAPPING_FILE, JSON.stringify(mapping, null, 2));
-
-  console.log('\r\nCompleted Sync');
 })();

@@ -12,37 +12,9 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
-var _extends2 = require('babel-runtime/helpers/extends');
-
-var _extends3 = _interopRequireDefault(_extends2);
-
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
 var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
 
 var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-
-var _createClass2 = require('babel-runtime/helpers/createClass');
-
-var _createClass3 = _interopRequireDefault(_createClass2);
-
-var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
-
-var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
-
-var _values = require('babel-runtime/core-js/object/values');
-
-var _values2 = _interopRequireDefault(_values);
-
-var _map = require('babel-runtime/core-js/map');
-
-var _map2 = _interopRequireDefault(_map);
-
-var _entries = require('babel-runtime/core-js/object/entries');
-
-var _entries2 = _interopRequireDefault(_entries);
 
 var _class, _temp;
 
@@ -64,149 +36,56 @@ var _settings3 = require('../../third-party/settings.json');
 
 var _settings4 = _interopRequireDefault(_settings3);
 
-var _specifications = require('../../third-party/specifications');
-
-var _specifications2 = _interopRequireDefault(_specifications);
-
-var _versions = require('../../third-party/versions.json');
-
-var _versions2 = _interopRequireDefault(_versions);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var platformSettings = (0, _entries2.default)(_specifications2.default);
-var SPECIFICATION_KEY_BY_PLATFORM = new _map2.default((0, _values2.default)(_settings4.default.knownPlatforms).map(function (platform) {
-  var spec = platformSettings.find(
-  // eslint-disable-next-line no-unused-vars
-  function (_ref) {
-    var _ref2 = (0, _slicedToArray3.default)(_ref, 2),
-        key = _ref2[0],
-        value = _ref2[1];
+var FirmwareManager = (_temp = _class = function FirmwareManager() {
+  (0, _classCallCheck3.default)(this, FirmwareManager);
 
-    return value.productName === platform;
-  });
-
-  return [platform, spec && spec[0]];
-}).filter(function (item) {
-  return !!item[1];
-}));
-var FIRMWARE_VERSION_BY_PLATFORM_ID = new _map2.default((0, _entries2.default)(_settings4.default.versionNumbers).map(function (_ref3) {
-  var _ref4 = (0, _slicedToArray3.default)(_ref3, 2),
-      platform = _ref4[0],
-      version = _ref4[1];
-
-  var specsForPlatform = (0, _nullthrows2.default)((0, _values2.default)(_specifications2.default).find(function (item) {
-    return item.productName.toLowerCase() === platform;
-  }));
-
-  var releaseVersion = _versions2.default.find(function (item) {
-    return item[1] === version;
-  })[0];
-
-  return [specsForPlatform.productId, releaseVersion];
-}));
-
-var FirmwareManager = (_temp = _class = function () {
-  function FirmwareManager() {
-    (0, _classCallCheck3.default)(this, FirmwareManager);
-
-    this.getKnownAppFileName = function () {
-      throw new Error('getKnownAppFileName has not been implemented.');
-    };
-  }
-
-  (0, _createClass3.default)(FirmwareManager, null, [{
-    key: 'getOtaUpdateConfig',
-    value: function getOtaUpdateConfig(platformID) {
-      var platform = _settings4.default.knownPlatforms[platformID.toString()];
-      var key = SPECIFICATION_KEY_BY_PLATFORM.get(platform);
-
-      // GCC Platform skip OTA Update Config
-      if (platformID === 3) {
-        return null;
-      }
-
-      if (!key) {
-        return null;
-      }
-
-      var firmwareSettings = _settings4.default.updates[key];
-      if (!key) {
-        return null;
-      }
-
-      var firmwareKeys = (0, _keys2.default)(firmwareSettings);
-      return firmwareKeys.map(function (firmwareKey) {
-        return (0, _extends3.default)({}, _specifications2.default[key][firmwareKey], {
-          binaryFileName: firmwareSettings[firmwareKey]
-        });
-      });
-    }
-  }]);
-  return FirmwareManager;
-}(), _class.getOtaSystemUpdateConfig = function () {
-  var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(systemInformation) {
-    var parser, platformID, modules, moduleToUpdate, otaUpdateConfig, moduleIndex, config, systemFile;
+  this.getKnownAppFileName = function () {
+    throw new Error('getKnownAppFileName has not been implemented.');
+  };
+}, _class.getOtaSystemUpdateConfig = function () {
+  var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(systemInformation) {
+    var platformID, resolver, missingDependencies, missingDependency, moduleFunction, firstDependency, systemFile;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            parser = new _binaryVersionReader.HalDescribeParser();
             platformID = systemInformation.p;
-            modules = parser.getModules(systemInformation)
-            // Filter so we only have the system modules
-            .filter(function (module) {
-              return module.func === 's';
-            });
+            resolver = new _binaryVersionReader.HalDependencyResolver();
+            missingDependencies = resolver.findAnyMissingDependencies(systemInformation);
 
-            if (modules) {
+            if (!(!missingDependencies || !missingDependencies.length)) {
               _context.next = 5;
-              break;
-            }
-
-            throw new Error('Could not find any system modules for OTA update');
-
-          case 5:
-            moduleToUpdate = modules.find(function (module) {
-              return module.version < (0, _nullthrows2.default)(FIRMWARE_VERSION_BY_PLATFORM_ID.get(platformID));
-            });
-
-            if (moduleToUpdate) {
-              _context.next = 8;
               break;
             }
 
             return _context.abrupt('return', null);
 
-          case 8:
-            otaUpdateConfig = FirmwareManager.getOtaUpdateConfig(platformID);
+          case 5:
+            missingDependency = missingDependencies[0];
+            moduleFunction = missingDependency.f === 'b' ? 2 : 4;
+            firstDependency = _settings4.default.find(function (_ref2) {
+              var prefixInfo = _ref2.prefixInfo;
+              return prefixInfo.platformID === platformID && prefixInfo.moduleVersion === missingDependency.v && prefixInfo.moduleFunction === moduleFunction;
+            });
 
-            if (otaUpdateConfig) {
-              _context.next = 11;
+            if (firstDependency) {
+              _context.next = 10;
               break;
             }
 
-            throw new Error('Could not find OTA update config for device');
+            return _context.abrupt('return', null);
 
-          case 11:
-            moduleIndex = modules.indexOf(moduleToUpdate);
-            config = otaUpdateConfig[moduleIndex];
-
-            if (config) {
-              _context.next = 15;
-              break;
-            }
-
-            throw new Error('Cannot find the module for updating');
-
-          case 15:
-            systemFile = _fs2.default.readFileSync(_settings2.default.BINARIES_DIRECTORY + '/' + config.binaryFileName);
+          case 10:
+            systemFile = _fs2.default.readFileSync(_settings2.default.BINARIES_DIRECTORY + '/' + firstDependency.filename);
             return _context.abrupt('return', {
-              moduleIndex: moduleIndex,
+              moduleFunction: moduleFunction,
+              moduleIndex: missingDependency.n,
               systemFile: systemFile
             });
 
-          case 17:
+          case 12:
           case 'end':
             return _context.stop();
         }
@@ -215,7 +94,7 @@ var FirmwareManager = (_temp = _class = function () {
   }));
 
   return function (_x) {
-    return _ref5.apply(this, arguments);
+    return _ref.apply(this, arguments);
   };
 }(), _class.getAppModule = function (systemInformation) {
   var parser = new _binaryVersionReader.HalDescribeParser();

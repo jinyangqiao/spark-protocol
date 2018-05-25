@@ -1176,7 +1176,7 @@ var Device = function (_EventEmitter) {
       var messageName = isPublic ? DEVICE_MESSAGE_EVENTS_NAMES.PUBLIC_EVENT : DEVICE_MESSAGE_EVENTS_NAMES.PRIVATE_EVENT;
 
       _this.sendMessage(messageName, {
-        event_name: name.toString()
+        event_name: name
       }, [{
         name: _CoapMessage2.default.Option.MAX_AGE,
         value: _CoapMessages2.default.toBinary(ttl, 'uint32')

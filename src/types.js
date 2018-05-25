@@ -29,7 +29,8 @@ export type DeviceKeyObject = {
   key: string,
 };
 
-export type ProtocolEvent = EventData & {
+export type ProtocolEvent = {
+  ...EventData,
   broadcasted?: boolean,
   publishedAt: Date,
   isPublic: boolean,

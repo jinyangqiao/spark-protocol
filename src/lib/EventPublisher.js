@@ -21,7 +21,6 @@
 import type { EventData, ProtocolEvent, PublishOptions } from '../types';
 
 import EventEmitter from 'events';
-import nullthrows from 'nullthrows';
 import uuid from 'uuid';
 import settings from '../settings';
 
@@ -57,13 +56,7 @@ type Subscription = {
 class EventPublisher extends EventEmitter {
   _subscriptionsByID: Map<string, Subscription> = new Map();
 
-  publish = (
-    eventData: EventData,
-    options: ?PublishOptions = {
-      isInternal: false,
-      isPublic: false,
-    },
-  ) => {
+  publish = (eventData: EventData, options: ?PublishOptions) => {
     const ttl =
       eventData.ttl && eventData.ttl > 0
         ? eventData.ttl
@@ -71,7 +64,7 @@ class EventPublisher extends EventEmitter {
 
     const event: ProtocolEvent = {
       ...eventData,
-      ...options,
+      ...(options || {}),
       publishedAt: new Date(),
       ttl,
     };
@@ -84,7 +77,7 @@ class EventPublisher extends EventEmitter {
 
   publishAndListenForResponse = async (
     eventData: EventData,
-  ): Promise<Object> => {
+  ): Promise<?Object> => {
     const eventID = uuid();
     const requestEventName = `${getRequestEventName(
       eventData.name,
@@ -92,12 +85,9 @@ class EventPublisher extends EventEmitter {
     const responseEventName = `${eventData.name}/response/${eventID}`;
 
     return new Promise(
-      (
-        resolve: (event: ProtocolEvent) => void,
-        reject: (error: Error) => void,
-      ) => {
+      (resolve: (event: ?Object) => void, reject: (error: Error) => void) => {
         const responseListener = (event: ProtocolEvent): void =>
-          resolve(nullthrows(event.context));
+          resolve(event.context || null);
 
         this.subscribe(responseEventName, responseListener, {
           once: true,
@@ -126,7 +116,7 @@ class EventPublisher extends EventEmitter {
 
   subscribe = (
     eventNamePrefix: string = '*',
-    eventHandler: (event: ProtocolEvent) => void | Promise<void>,
+    eventHandler: <TResponse>(event: ProtocolEvent) => void | Promise<*>,
     options?: SubscriptionOptions = {},
   ): string => {
     const {
