@@ -175,9 +175,7 @@ class DeviceServer {
     const { deviceID, ownerID } = device.getAttributes();
     const systemInformation = device.getSystemInformation();
 
-    const config = await FirmwareManager.getOtaSystemUpdateConfig(
-      systemInformation,
-    );
+    const config = FirmwareManager.getOtaSystemUpdateConfig(systemInformation);
     if (!config) {
       return;
     }
@@ -186,7 +184,7 @@ class DeviceServer {
       this.publishSpecialEvent(
         SYSTEM_EVENT_NAMES.SAFE_MODE_UPDATING,
         // Lets the user know if it's the system update part 1/2/3
-        config.moduleIndex + 1,
+        config.moduleIndex,
         deviceID,
         ownerID,
         false,
@@ -475,9 +473,10 @@ class DeviceServer {
         // events from it.
         publishOptions.isPublic = false;
 
-        shouldSwallowEvent = !SPECIAL_EVENTS.some(
-          (specialEvent: string): boolean => eventName.startsWith(specialEvent),
-        );
+        shouldSwallowEvent =
+          !SPECIAL_EVENTS.some((specialEvent: string): boolean =>
+            eventName.startsWith(specialEvent),
+          ) || device.isFlashing();
         if (shouldSwallowEvent) {
           device.sendReply('EventAck', packet.messageId);
         }
@@ -989,7 +988,6 @@ class DeviceServer {
     if (device.isFlashing()) {
       logger.info(
         {
-          deviceAttributes: device.getAttributes(),
           productDevice,
         },
         'Device already flashing',
@@ -1034,10 +1032,12 @@ class DeviceServer {
       return;
     }
 
-    // Check if product is in safe mode. For some reason it returns this weird
-    // firmware code when it's in this state.
-    const deviceAttributes = device.getAttributes();
-    if (deviceAttributes.productFirmwareVersion === 65535) {
+    const systemInformation = device.getSystemInformation();
+    const isMissingDependency = FirmwareManager.isMissingOTAUpdate(
+      systemInformation,
+    );
+
+    if (isMissingDependency) {
       return;
     }
 

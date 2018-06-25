@@ -162,6 +162,7 @@ var SYSTEM_EVENT_NAMES = exports.SYSTEM_EVENT_NAMES = {
   LAST_RESET: 'spark/device/last_reset', // This should just have a friendly string in its payload.
   MAX_BINARY: 'spark/hardware/max_binary',
   OTA_CHUNK_SIZE: 'spark/hardware/ota_chunk_size',
+  OTA_RESULT: 'spark/device/ota_result',
   RESET: 'spark/device/reset', // send this to reset passing "safe mode"/"dfu"/"reboot"
   SAFE_MODE: 'spark/device/safemode',
   SAFE_MODE_UPDATING: 'spark/safe-mode-updater/updating',
@@ -602,7 +603,6 @@ var Device = function (_EventEmitter) {
 
     _this.sendReply = function (messageName, id, data, token, requester) {
       if (!_this._isSocketAvailable(requester || null, messageName)) {
-        logger.error({ messageName: messageName }, 'This client has an exclusive lock.');
         return;
       }
 
@@ -635,7 +635,6 @@ var Device = function (_EventEmitter) {
 
     _this.sendMessage = function (messageName, params, options, data, requester) {
       if (!_this._isSocketAvailable(requester, messageName)) {
-        logger.error({ messageName: messageName }, 'This client has an exclusive lock.');
         return -1;
       }
 
