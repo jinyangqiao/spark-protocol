@@ -79,24 +79,24 @@ var _logger2 = _interopRequireDefault(_logger);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /*
-*   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
-*
-*   This program is free software; you can redistribute it and/or
-*   modify it under the terms of the GNU Lesser General Public
-*   License as published by the Free Software Foundation, either
-*   version 3 of the License, or (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*   Lesser General Public License for more details.
-*
-*   You should have received a copy of the GNU Lesser General Public
-*   License along with this program; if not, see <http://www.gnu.org/licenses/>.
-*
-* 
-*
-*/
+ *   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation, either
+ *   version 3 of the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ * 
+ *
+ */
 
 var logger = _logger2.default.createModuleLogger(module);
 //
@@ -131,7 +131,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
   this._ignoreMissedChunks = false;
 
   this.startFlashBuffer = function () {
-    var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(buffer) {
+    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(buffer) {
       var fileTransferStore = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _FileTransferStore2.default.FIRMWARE;
       var address = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '0x0';
       return _regenerator2.default.wrap(function _callee$(_context) {
@@ -246,7 +246,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
   };
 
   this._beginUpdate = function () {
-    var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3(buffer, fileTransferStore, address) {
+    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3(buffer, fileTransferStore, address) {
       var maxTries, tryBeginUpdate;
       return _regenerator2.default.wrap(function _callee3$(_context3) {
         while (1) {
@@ -255,7 +255,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
               maxTries = 3;
 
               tryBeginUpdate = function () {
-                var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+                var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2() {
                   var delay, sentStatus, packet, version;
                   return _regenerator2.default.wrap(function _callee2$(_context2) {
                     while (1) {
@@ -390,7 +390,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
     return !!_this._client.sendMessage('UpdateBegin', null, null, Buffer.concat([_CoapMessages2.default.toBinary(flags, 'uint8'), _CoapMessages2.default.toBinary(chunkSize, 'uint16'), _CoapMessages2.default.toBinary(fileSize, 'uint32'), _CoapMessages2.default.toBinary(destFlag, 'uint8'), _CoapMessages2.default.toBinary(destAddr, 'uint32')]), _this);
   };
 
-  this._sendFile = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4() {
+  this._sendFile = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4() {
     var canUseFastOTA, messageToken, message, counter;
     return _regenerator2.default.wrap(function _callee4$(_context4) {
       while (1) {
@@ -472,7 +472,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
 
           case 23:
 
-            // Handle missed chunks
+            // Handle missed chunks. Wait a maximum of 12 seconds
             counter = 0;
 
           case 24:
@@ -500,7 +500,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
       }
     }, _callee4, _this);
   }));
-  this._resendChunks = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6() {
+  this._resendChunks = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6() {
     var missedChunks, canUseFastOTA;
     return _regenerator2.default.wrap(function _callee6$(_context6) {
       while (1) {
@@ -513,7 +513,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
             canUseFastOTA = _this._fastOtaEnabled && _this._protocolVersion > 0;
             _context6.next = 5;
             return _promise2.default.all(missedChunks.map(function () {
-              var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(chunkIndex) {
+              var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(chunkIndex) {
                 var offset, messageToken, message;
                 return _regenerator2.default.wrap(function _callee5$(_context5) {
                   while (1) {
@@ -603,7 +603,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
     return _this._client.sendMessage('Chunk', { args: args }, null, _this._chunk, _this);
   };
 
-  this._onAllChunksDone = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7() {
+  this._onAllChunksDone = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7() {
     return _regenerator2.default.wrap(function _callee7$(_context7) {
       while (1) {
         switch (_context7.prev = _context7.next) {
@@ -639,7 +639,8 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
     }
   };
 
-  this._waitForMissedChunks = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee8() {
+  this._waitForMissedChunks = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee8() {
+    var startingChunkCount, counter;
     return _regenerator2.default.wrap(function _callee8$(_context8) {
       while (1) {
         switch (_context8.prev = _context8.next) {
@@ -652,19 +653,26 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
             return _context8.abrupt('return', null);
 
           case 2:
-            if (!_this._missedChunks.size) {
-              _context8.next = 4;
-              break;
-            }
+            startingChunkCount = _this._missedChunks.size;
+            counter = 0;
 
-            return _context8.abrupt('return', _promise2.default.resolve());
+            // poll every 500ms to see if a new chunk came in and exit this early.
+            // wait a total of 5 seconds
 
-          case 4:
             return _context8.abrupt('return', new _promise2.default(function (resolve) {
-              return setTimeout(function () {
-                logger.info('finished waiting');
-                resolve();
-              }, 3 * 1000);
+              return setInterval(function () {
+                counter += 1;
+                if (startingChunkCount !== _this._missedChunks.size) {
+                  resolve();
+                  return;
+                }
+
+                // 200ms * 5 * 4 / 1000
+                if (counter >= 20) {
+                  logger.info('finished waiting');
+                  resolve();
+                }
+              }, 200);
             }));
 
           case 5:
@@ -721,7 +729,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
 }
 
 /*
- * delay the teardown until at least like 10 seconds after the last
+ * delay the teardown until 4 seconds after the last
  * chunkmissed message.
  */
 ;

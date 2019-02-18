@@ -365,16 +365,18 @@ const MessageSpecifications: Array<[MessageType, MessageSpecificationType]> = [
       type: CoapMessage.Type.NON,
     },
   ],
-].map(([name, value]: [MessageType, MessageSpecificationType]): [
-  MessageType,
-  Object,
-] => {
-  let template = null;
-  if (value && value.uri && value.uri.indexOf('{') >= 0) {
-    template = hogan.compile(value.uri);
-  }
+].map(
+  ([name, value]: [MessageType, MessageSpecificationType]): [
+    MessageType,
+    Object,
+  ] => {
+    let template = null;
+    if (value && value.uri && value.uri.indexOf('{') >= 0) {
+      template = hogan.compile(value.uri);
+    }
 
-  return [name, { ...value, template }];
-});
+    return [name, { ...value, template }];
+  },
+);
 
 export default MessageSpecifications;

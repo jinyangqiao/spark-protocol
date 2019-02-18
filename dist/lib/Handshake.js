@@ -35,24 +35,24 @@ var _logger2 = _interopRequireDefault(_logger);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /*
-*   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
-*
-*   This program is free software; you can redistribute it and/or
-*   modify it under the terms of the GNU Lesser General Public
-*   License as published by the Free Software Foundation, either
-*   version 3 of the License, or (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*   Lesser General Public License for more details.
-*
-*   You should have received a copy of the GNU Lesser General Public
-*   License along with this program; if not, see <http://www.gnu.org/licenses/>.
-*
-* 
-*
-*/
+ *   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation, either
+ *   version 3 of the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ * 
+ *
+ */
 
 var logger = _logger2.default.createModuleLogger(module);
 /*
@@ -126,7 +126,7 @@ var Handshake = function Handshake(cryptoManager) {
   this._useChunkingStream = true;
 
   this.start = function () {
-    var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(device) {
+    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(device) {
       return _regenerator2.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
@@ -159,7 +159,7 @@ var Handshake = function Handshake(cryptoManager) {
     };
   }();
 
-  this._runHandshake = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+  this._runHandshake = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2() {
     var nonce, data, _ref3, deviceID, deviceProvidedPem, publicKey, _ref4, cipherStream, decipherStream, handshakeBuffer;
 
     return _regenerator2.default.wrap(function _callee2$(_context2) {
@@ -257,7 +257,7 @@ var Handshake = function Handshake(cryptoManager) {
     });
   };
 
-  this._sendNonce = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3() {
+  this._sendNonce = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3() {
     var nonce;
     return _regenerator2.default.wrap(function _callee3$(_context3) {
       while (1) {
@@ -282,7 +282,7 @@ var Handshake = function Handshake(cryptoManager) {
   }));
 
   this._readDeviceHandshakeData = function () {
-    var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4(nonce, data) {
+    var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(nonce, data) {
       var decryptedHandshakeData, nonceBuffer, deviceIDBuffer, deviceKeyBuffer, deviceProvidedPem, deviceID;
       return _regenerator2.default.wrap(function _callee4$(_context4) {
         while (1) {
@@ -356,7 +356,7 @@ var Handshake = function Handshake(cryptoManager) {
   };
 
   this._getDevicePublicKey = function () {
-    var _ref7 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(deviceID, deviceProvidedPem) {
+    var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(deviceID, deviceProvidedPem) {
       var publicKey;
       return _regenerator2.default.wrap(function _callee5$(_context5) {
         while (1) {
@@ -400,8 +400,8 @@ var Handshake = function Handshake(cryptoManager) {
   }();
 
   this._sendSessionKey = function () {
-    var _ref8 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6(devicePublicKey) {
-      var sessionKey, ciphertext, hash, signedhmac, message, decipherStream, cipherStream, chunkingIn, chunkingOut;
+    var _ref8 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6(devicePublicKey) {
+      var sessionKey, ciphertext, hash, signedhmac, message, addErrorCallback, decipherStream, cipherStream, chunkingIn, chunkingOut;
       return _regenerator2.default.wrap(function _callee6$(_context6) {
         while (1) {
           switch (_context6.prev = _context6.next) {
@@ -434,17 +434,29 @@ var Handshake = function Handshake(cryptoManager) {
 
               // Server sends ~384 bytes to Device: the ciphertext then the signature.
               message = Buffer.concat([ciphertext, signedhmac], ciphertext.length + signedhmac.length);
+
+              addErrorCallback = function addErrorCallback(stream, streamName) {
+                stream.on('error', function (error) {
+                  logger.error({ deviceID: _this._deviceID, err: error }, 'Error in ' + streamName + ' stream');
+                });
+              };
+
               decipherStream = _this._cryptoManager.createAESDecipherStream(sessionKey);
               cipherStream = _this._cryptoManager.createAESCipherStream(sessionKey);
 
+
+              addErrorCallback(decipherStream, 'decipher');
+              addErrorCallback(cipherStream, 'cipher');
 
               if (_this._useChunkingStream) {
                 chunkingIn = new _ChunkingStream2.default({ outgoing: false });
                 chunkingOut = new _ChunkingStream2.default({ outgoing: true });
 
+                addErrorCallback(chunkingIn, 'chunkingIn');
+                addErrorCallback(chunkingOut, 'chunkingOut');
+
                 // What I receive gets broken into message chunks, and goes into the
                 // decrypter
-
                 _this._socket.pipe(chunkingIn);
                 chunkingIn.pipe(decipherStream);
 
@@ -461,7 +473,7 @@ var Handshake = function Handshake(cryptoManager) {
 
               return _context6.abrupt('return', { cipherStream: cipherStream, decipherStream: decipherStream });
 
-            case 14:
+            case 17:
             case 'end':
               return _context6.stop();
           }

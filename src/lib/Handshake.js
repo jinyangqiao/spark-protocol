@@ -1,22 +1,22 @@
 /*
-*   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
-*
-*   This program is free software; you can redistribute it and/or
-*   modify it under the terms of the GNU Lesser General Public
-*   License as published by the Free Software Foundation, either
-*   version 3 of the License, or (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*   Lesser General Public License for more details.
-*
-*   You should have received a copy of the GNU Lesser General Public
-*   License along with this program; if not, see <http://www.gnu.org/licenses/>.
-*
-* @flow
-*
-*/
+ *   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation, either
+ *   version 3 of the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ * @flow
+ *
+ */
 
 import type Device from '../clients/Device';
 import type DeviceKey from './DeviceKey';
@@ -348,14 +348,28 @@ class Handshake {
       ciphertext.length + signedhmac.length,
     );
 
+    const addErrorCallback = (stream: Stream, streamName: string) => {
+      stream.on('error', (error: Error) => {
+        logger.error(
+          { deviceID: this._deviceID, err: error },
+          `Error in ${streamName} stream`,
+        );
+      });
+    };
+
     const decipherStream = this._cryptoManager.createAESDecipherStream(
       sessionKey,
     );
     const cipherStream = this._cryptoManager.createAESCipherStream(sessionKey);
 
+    addErrorCallback(decipherStream, 'decipher');
+    addErrorCallback(cipherStream, 'cipher');
+
     if (this._useChunkingStream) {
       const chunkingIn = new ChunkingStream({ outgoing: false });
       const chunkingOut = new ChunkingStream({ outgoing: true });
+      addErrorCallback(chunkingIn, 'chunkingIn');
+      addErrorCallback(chunkingOut, 'chunkingOut');
 
       // What I receive gets broken into message chunks, and goes into the
       // decrypter
@@ -387,8 +401,9 @@ class Handshake {
     });
 
   _onDecipherStreamTimeout = (): Promise<*> =>
-    new Promise((resolve: () => void, reject: () => void): number =>
-      setTimeout((): void => reject(), DECIPHER_STREAM_TIMEOUT * 1000),
+    new Promise(
+      (resolve: () => void, reject: () => void): number =>
+        setTimeout((): void => reject(), DECIPHER_STREAM_TIMEOUT * 1000),
     );
 }
 

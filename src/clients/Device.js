@@ -1,22 +1,22 @@
 /*
-*   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
-*
-*   This program is free software; you can redistribute it and/or
-*   modify it under the terms of the GNU Lesser General Public
-*   License as published by the Free Software Foundation, either
-*   version 3 of the License, or (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*   Lesser General Public License for more .
-*
-*   You should have received a copy of the GNU Lesser General Public
-*   License along with this program; if not, see <http://www.gnu.org/licenses/>.
-*
-* @flow
-*
-*/
+ *   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation, either
+ *   version 3 of the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more .
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ * @flow
+ *
+ */
 
 import type { Socket } from 'net';
 import type { Duplex } from 'stream';
@@ -257,8 +257,9 @@ class Device extends EventEmitter {
     this._socket.setKeepAlive(true, KEEP_ALIVE_TIMEOUT); // every 15 second(s)
     this._socket.setTimeout(SOCKET_TIMEOUT);
 
-    this._socket.on('error', (error: Error): void =>
-      this.disconnect(`socket error: ${error.message}`),
+    this._socket.on(
+      'error',
+      (error: Error): void => this.disconnect(`socket error: ${error.message}`),
     );
     this._socket.on('close', (): void => this.disconnect('socket close'));
     this._socket.on('timeout', (): void => this.disconnect('socket timeout'));
@@ -907,7 +908,7 @@ class Device extends EventEmitter {
     } catch (error) {
       logger.error(
         { err: error },
-        `_transformVariableResult - error transforming response`,
+        '_transformVariableResult - error transforming response',
       );
     }
 
@@ -926,7 +927,7 @@ class Device extends EventEmitter {
     } catch (error) {
       logger.error(
         { err: error },
-        `_transformFunctionResult - error transforming response`,
+        '_transformFunctionResult - error transforming response',
       );
       throw error;
     }
@@ -935,8 +936,8 @@ class Device extends EventEmitter {
   };
 
   _getDescription = async (): Promise<DeviceDescription> => {
-    await new Promise((resolve: () => void): number =>
-      setTimeout((): void => resolve(), 50),
+    await new Promise(
+      (resolve: () => void): number => setTimeout((): void => resolve(), 50),
     );
 
     return new Promise(

@@ -84,24 +84,24 @@ var _logger2 = _interopRequireDefault(_logger);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /*
-*   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
-*
-*   This program is free software; you can redistribute it and/or
-*   modify it under the terms of the GNU Lesser General Public
-*   License as published by the Free Software Foundation, either
-*   version 3 of the License, or (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*   Lesser General Public License for more .
-*
-*   You should have received a copy of the GNU Lesser General Public
-*   License along with this program; if not, see <http://www.gnu.org/licenses/>.
-*
-* 
-*
-*/
+ *   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation, either
+ *   version 3 of the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more .
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ * 
+ *
+ */
 
 var logger = _logger2.default.createModuleLogger(module);
 
@@ -276,7 +276,7 @@ var Device = function (_EventEmitter) {
     };
 
     _this.hasStatus = function () {
-      var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(status) {
+      var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(status) {
         return _regenerator2.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -313,7 +313,7 @@ var Device = function (_EventEmitter) {
       };
     }();
 
-    _this.startProtocolInitialization = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+    _this.startProtocolInitialization = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2() {
       return _regenerator2.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -345,7 +345,7 @@ var Device = function (_EventEmitter) {
         }
       }, _callee2, _this2);
     }));
-    _this.startHandshake = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3() {
+    _this.startHandshake = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3() {
       var result, cipherStream, decipherStream, deviceID, handshakeBuffer, getHelloInfo;
       return _regenerator2.default.wrap(function _callee3$(_context3) {
         while (1) {
@@ -397,7 +397,7 @@ var Device = function (_EventEmitter) {
         }
       }, _callee3, _this2, [[0, 15]]);
     }));
-    _this.completeProtocolInitialization = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4() {
+    _this.completeProtocolInitialization = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4() {
       var decipherStream, _ref5, _functionState, _systemInformation;
 
       return _regenerator2.default.wrap(function _callee4$(_context4) {
@@ -670,7 +670,7 @@ var Device = function (_EventEmitter) {
     };
 
     _this.listenFor = function () {
-      var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(eventName, uri, token) {
+      var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(eventName, uri, token) {
         var tokenHex, beVerbose;
         return _regenerator2.default.wrap(function _callee5$(_context5) {
           while (1) {
@@ -790,7 +790,7 @@ var Device = function (_EventEmitter) {
     };
 
     _this.getVariableValue = function () {
-      var _ref7 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6(name) {
+      var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6(name) {
         var isBusy, messageToken, message;
         return _regenerator2.default.wrap(function _callee6$(_context6) {
           while (1) {
@@ -840,7 +840,7 @@ var Device = function (_EventEmitter) {
     }();
 
     _this.callFunction = function () {
-      var _ref8 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7(functionName, functionArguments) {
+      var _ref8 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7(functionName, functionArguments) {
         var isBusy, token, message;
         return _regenerator2.default.wrap(function _callee7$(_context7) {
           while (1) {
@@ -899,7 +899,7 @@ var Device = function (_EventEmitter) {
     }();
 
     _this.raiseYourHand = function () {
-      var _ref9 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee8(shouldShowSignal) {
+      var _ref9 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee8(shouldShowSignal) {
         var isBusy, buffer, token;
         return _regenerator2.default.wrap(function _callee8$(_context8) {
           while (1) {
@@ -948,7 +948,7 @@ var Device = function (_EventEmitter) {
     }();
 
     _this.flash = function () {
-      var _ref10 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee9(binary) {
+      var _ref10 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee9(binary) {
         var fileTransferStore = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _FileTransferStore2.default.FIRMWARE;
         var address = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '0x0';
         var isBusy, flasher;
@@ -1086,7 +1086,7 @@ var Device = function (_EventEmitter) {
       return result;
     };
 
-    _this._getDescription = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee10() {
+    _this._getDescription = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee10() {
       return _regenerator2.default.wrap(function _callee10$(_context10) {
         while (1) {
           switch (_context10.prev = _context10.next) {

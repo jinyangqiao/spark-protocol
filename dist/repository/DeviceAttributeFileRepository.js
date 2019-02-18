@@ -81,7 +81,7 @@ var DeviceAttributeFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 =
     (0, _classCallCheck3.default)(this, DeviceAttributeFileRepository);
 
     this.create = function () {
-      var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(model) {
+      var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(model) {
         return _regenerator2.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -102,7 +102,7 @@ var DeviceAttributeFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 =
     }();
 
     this.getAll = function () {
-      var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+      var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2() {
         var userID = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
         var allData;
         return _regenerator2.default.wrap(function _callee2$(_context2) {
@@ -149,7 +149,7 @@ var DeviceAttributeFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 =
   (0, _createClass3.default)(DeviceAttributeFileRepository, [{
     key: 'updateByID',
     value: function () {
-      var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3(deviceID, props) {
+      var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3(deviceID, props) {
         var currentAttributes, modelToSave;
         return _regenerator2.default.wrap(function _callee3$(_context3) {
           while (1) {
@@ -185,7 +185,7 @@ var DeviceAttributeFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 =
   }, {
     key: 'deleteByID',
     value: function () {
-      var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4(deviceID) {
+      var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(deviceID) {
         return _regenerator2.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -209,7 +209,7 @@ var DeviceAttributeFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 =
   }, {
     key: 'getByID',
     value: function () {
-      var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(deviceID) {
+      var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(deviceID) {
         return _regenerator2.default.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
@@ -233,7 +233,7 @@ var DeviceAttributeFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 =
   }, {
     key: '_getAll',
     value: function () {
-      var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6() {
+      var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6() {
         return _regenerator2.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {

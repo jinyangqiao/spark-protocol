@@ -61,7 +61,34 @@ var _dotenv2 = _interopRequireDefault(_dotenv);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_dotenv2.default.config();
+var fileDirectory = _path2.default.resolve(process.cwd());
+var filePath = null;
+
+// A counter is a lot safer than a while(true)
+var count = 0;
+while (count < 20) {
+  count += 1;
+  filePath = _path2.default.join(fileDirectory, '.env');
+  console.log('Checking for .env: ', filePath);
+  if (_fs2.default.existsSync(filePath)) {
+    break;
+  }
+
+  var newFileDirectory = _path2.default.join(fileDirectory, '..');
+  if (newFileDirectory === fileDirectory) {
+    filePath = null;
+    break;
+  }
+  fileDirectory = newFileDirectory;
+}
+
+if (!filePath) {
+  _dotenv2.default.config();
+} else {
+  _dotenv2.default.config({
+    path: filePath
+  });
+}
 
 var GITHUB_USER = 'particle-iot';
 var GITHUB_FIRMWARE_REPOSITORY = 'firmware';
@@ -137,7 +164,7 @@ if (GITHUB_AUTH_TYPE === 'oauth') {
 }
 
 var downloadAssetFile = function () {
-  var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(asset) {
+  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(asset) {
     var url, filename, fileWithPath;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
@@ -187,7 +214,7 @@ var downloadAssetFile = function () {
 }();
 
 var downloadBlob = function () {
-  var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(asset) {
+  var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(asset) {
     var filename, fileWithPath;
     return _regenerator2.default.wrap(function _callee2$(_context2) {
       while (1) {
@@ -236,7 +263,7 @@ var downloadBlob = function () {
 }();
 
 var downloadFirmwareBinaries = function () {
-  var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3(assets) {
+  var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3(assets) {
     var assetFileNames;
     return _regenerator2.default.wrap(function _callee3$(_context3) {
       while (1) {
@@ -274,7 +301,7 @@ var downloadFirmwareBinaries = function () {
 }();
 
 var updateSettings = function () {
-  var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4(binaryFileNames) {
+  var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(binaryFileNames) {
     var parser, moduleInfos, scriptSettings;
     return _regenerator2.default.wrap(function _callee4$(_context4) {
       while (1) {
@@ -315,7 +342,7 @@ var updateSettings = function () {
 }();
 
 var downloadAppBinaries = function () {
-  var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5() {
+  var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5() {
     var assets;
     return _regenerator2.default.wrap(function _callee5$(_context5) {
       while (1) {
@@ -351,7 +378,7 @@ var downloadAppBinaries = function () {
   };
 }();
 
-(0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6() {
+(0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6() {
   var _ref7, releases, assets, downloadedBinaries;
 
   return _regenerator2.default.wrap(function _callee6$(_context6) {

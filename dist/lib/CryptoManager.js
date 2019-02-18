@@ -65,7 +65,7 @@ var CryptoManager = (_temp = _class = function CryptoManager(deviceKeyRepository
     });
   };
 
-  this._createServerKeys = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
+  this._createServerKeys = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
     var privateKey;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
@@ -85,7 +85,7 @@ var CryptoManager = (_temp = _class = function CryptoManager(deviceKeyRepository
       }
     }, _callee, _this);
   }));
-  this._getServerPrivateKey = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+  this._getServerPrivateKey = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2() {
     var privateKeyString;
     return _regenerator2.default.wrap(function _callee2$(_context2) {
       while (1) {
@@ -137,7 +137,7 @@ var CryptoManager = (_temp = _class = function CryptoManager(deviceKeyRepository
   };
 
   this.createDevicePublicKey = function () {
-    var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3(deviceID, publicKeyPem) {
+    var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3(deviceID, publicKeyPem) {
       var output, algorithm;
       return _regenerator2.default.wrap(function _callee3$(_context3) {
         while (1) {
@@ -184,7 +184,7 @@ var CryptoManager = (_temp = _class = function CryptoManager(deviceKeyRepository
   };
 
   this.getDevicePublicKey = function () {
-    var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4(deviceID) {
+    var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(deviceID) {
       var publicKeyObject;
       return _regenerator2.default.wrap(function _callee4$(_context4) {
         while (1) {
@@ -235,7 +235,7 @@ var CryptoManager = (_temp = _class = function CryptoManager(deviceKeyRepository
   };
 
   this.sign = function () {
-    var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(hash) {
+    var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(hash) {
       return _regenerator2.default.wrap(function _callee5$(_context5) {
         while (1) {
           switch (_context5.prev = _context5.next) {
@@ -259,7 +259,7 @@ var CryptoManager = (_temp = _class = function CryptoManager(deviceKeyRepository
   this._serverKeyRepository = serverKeyRepository;
   this._serverKeyPassword = serverKeyPassword;
 
-  (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6() {
+  (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6() {
     return _regenerator2.default.wrap(function _callee6$(_context6) {
       while (1) {
         switch (_context6.prev = _context6.next) {

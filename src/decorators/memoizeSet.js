@@ -23,11 +23,12 @@ export default <TType: Object, TItem: Object>(
   } else {
     fetchItemFunction = (keys: Array<string>): Function =>
       function(...parameters: Array<Object>): Promise<TItem> {
-        return this.getAll().filter((item: TItem): boolean =>
-          parameters.every(
-            (param: Object, index: number): boolean =>
-              param === item[keys[index]],
-          ),
+        return this.getAll().filter(
+          (item: TItem): boolean =>
+            parameters.every(
+              (param: Object, index: number): boolean =>
+                param === item[keys[index]],
+            ),
         );
       };
   }

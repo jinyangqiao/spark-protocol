@@ -41,8 +41,9 @@ class FileManager {
     return fs
       .readdirSync(this._directoryPath)
       .filter((fileName: string): boolean => fileName.endsWith('.json'))
-      .map((fileName: string): string =>
-        fs.readFileSync(path.join(this._directoryPath, fileName), 'utf8'),
+      .map(
+        (fileName: string): string =>
+          fs.readFileSync(path.join(this._directoryPath, fileName), 'utf8'),
       );
   }
 

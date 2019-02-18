@@ -45,7 +45,7 @@ var MockProductDeviceRepository = function MockProductDeviceRepository() {
   };
 
   this.getFromDeviceID = function () {
-    var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(deviceID) {
+    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(deviceID) {
       return _regenerator2.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {

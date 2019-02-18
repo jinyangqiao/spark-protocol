@@ -28,7 +28,7 @@ var ServerKeyFileRepository = function ServerKeyFileRepository(serverKeysDir, se
   (0, _classCallCheck3.default)(this, ServerKeyFileRepository);
 
   this.createKeys = function () {
-    var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(privateKeyPem, publicKeyPem) {
+    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(privateKeyPem, publicKeyPem) {
       var extIdx, pubPemFilename;
       return _regenerator2.default.wrap(function _callee$(_context) {
         while (1) {
@@ -56,7 +56,7 @@ var ServerKeyFileRepository = function ServerKeyFileRepository(serverKeysDir, se
     };
   }();
 
-  this.getPrivateKey = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+  this.getPrivateKey = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2() {
     return _regenerator2.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {

@@ -82,7 +82,7 @@ var DeviceKeyFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 = (0, _
   (0, _createClass3.default)(DeviceKeyFileRepository, [{
     key: 'create',
     value: function () {
-      var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(model) {
+      var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(model) {
         return _regenerator2.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -107,7 +107,7 @@ var DeviceKeyFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 = (0, _
   }, {
     key: 'deleteByID',
     value: function () {
-      var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(deviceID) {
+      var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(deviceID) {
         return _regenerator2.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -134,7 +134,7 @@ var DeviceKeyFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 = (0, _
   }, {
     key: 'getAll',
     value: function () {
-      var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3() {
+      var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3() {
         return _regenerator2.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -158,7 +158,7 @@ var DeviceKeyFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 = (0, _
   }, {
     key: 'getByID',
     value: function () {
-      var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4(deviceID) {
+      var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(deviceID) {
         var key;
         return _regenerator2.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -184,7 +184,7 @@ var DeviceKeyFileRepository = (_dec = (0, _memoizeSet2.default)(), _dec2 = (0, _
   }, {
     key: 'updateByID',
     value: function () {
-      var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(deviceID, props) {
+      var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(deviceID, props) {
         var key;
         return _regenerator2.default.wrap(function _callee5$(_context5) {
           while (1) {

@@ -1,22 +1,22 @@
 /*
-*   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
-*
-*   This program is free software; you can redistribute it and/or
-*   modify it under the terms of the GNU Lesser General Public
-*   License as published by the Free Software Foundation, either
-*   version 3 of the License, or (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*   Lesser General Public License for more details.
-*
-*   You should have received a copy of the GNU Lesser General Public
-*   License along with this program; if not, see <http://www.gnu.org/licenses/>.
-*
-* @flow
-*
-*/
+ *   Copyright (c) 2015 Particle Industries, Inc.  All rights reserved.
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation, either
+ *   version 3 of the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ * @flow
+ *
+ */
 
 import type { Socket } from 'net';
 import type {
@@ -143,10 +143,11 @@ class DeviceServer {
       this._onFlashProductFirmware,
     );
 
-    const server = net.createServer((socket: Socket): void =>
-      process.nextTick((): Promise<void> =>
-        this._onNewSocketConnection(socket),
-      ),
+    const server = net.createServer(
+      (socket: Socket): void =>
+        process.nextTick(
+          (): Promise<void> => this._onNewSocketConnection(socket),
+        ),
     );
 
     setInterval(
@@ -160,13 +161,15 @@ class DeviceServer {
       10000,
     );
 
-    server.on('error', (error: Error): void =>
-      logger.error({ err: error }, 'something blew up'),
+    server.on(
+      'error',
+      (error: Error): void => logger.error({ err: error }, 'something blew up'),
     );
 
     const serverPort = this._config.PORT.toString();
-    server.listen(serverPort, (): void =>
-      logger.info({ serverPort }, 'Server started'),
+    server.listen(
+      serverPort,
+      (): void => logger.info({ serverPort }, 'Server started'),
     );
   }
 
@@ -225,169 +228,175 @@ class DeviceServer {
         'Connection',
       );
 
-      process.nextTick(async (): Promise<void> => {
-        try {
-          device.on(DEVICE_EVENT_NAMES.DISCONNECT, (): Promise<void> =>
-            this._onDeviceDisconnect(device),
-          );
-
-          device.on(
-            DEVICE_MESSAGE_EVENTS_NAMES.SUBSCRIBE,
-            (packet: CoapPacket): Promise<void> =>
-              this._onDeviceSubscribe(packet, device),
-          );
-
-          device.on(
-            DEVICE_MESSAGE_EVENTS_NAMES.PRIVATE_EVENT,
-            (packet: CoapPacket): Promise<void> =>
-              this._onDeviceSentMessage(packet, /* isPublic*/ false, device),
-          );
-
-          device.on(
-            DEVICE_MESSAGE_EVENTS_NAMES.PUBLIC_EVENT,
-            (packet: CoapPacket): Promise<void> =>
-              this._onDeviceSentMessage(packet, /* isPublic*/ true, device),
-          );
-
-          device.on(
-            DEVICE_MESSAGE_EVENTS_NAMES.GET_TIME,
-            (packet: CoapPacket): void => this._onDeviceGetTime(packet, device),
-          );
-
-          // TODO in the next 3 subscriptions for flashing events
-          // there is code duplication, its not clean, but
-          // i guess we'll remove these subscription soon anyways
-          // so I keep it like this for now.
-          device.on(DEVICE_EVENT_NAMES.FLASH_STARTED, async (): Promise<
-            void,
-          > => {
-            await device.hasStatus(DEVICE_STATUS_MAP.READY);
-            const { ownerID } = device.getAttributes();
-            this.publishSpecialEvent(
-              SYSTEM_EVENT_NAMES.FLASH_STATUS,
-              'started',
-              deviceID,
-              ownerID,
-              false,
-            );
-          });
-
-          device.on(DEVICE_EVENT_NAMES.FLASH_SUCCESS, async (): Promise<
-            void,
-          > => {
-            await device.hasStatus(DEVICE_STATUS_MAP.READY);
-            const { ownerID } = device.getAttributes();
-            this.publishSpecialEvent(
-              SYSTEM_EVENT_NAMES.FLASH_STATUS,
-              'success',
-              deviceID,
-              ownerID,
-              false,
-            );
-          });
-
-          device.on(DEVICE_EVENT_NAMES.FLASH_FAILED, async (): Promise<
-            void,
-          > => {
-            await device.hasStatus(DEVICE_STATUS_MAP.READY);
-            const { ownerID } = device.getAttributes();
-            this.publishSpecialEvent(
-              SYSTEM_EVENT_NAMES.FLASH_STATUS,
-              'failed',
-              deviceID,
-              ownerID,
-              false,
-            );
-          });
-
-          if (this._devicesById.has(deviceID)) {
-            const existingConnection = this._devicesById.get(deviceID);
-            nullthrows(existingConnection).disconnect(
-              'Device was already connected. Reconnecting.',
-            );
-          }
-
-          this._devicesById.set(deviceID, device);
-
-          const systemInformation = await device.completeProtocolInitialization();
-
-          let appModules;
+      process.nextTick(
+        async (): Promise<void> => {
           try {
-            appModules = FirmwareManager.getAppModule(systemInformation);
-          } catch (ignore) {
-            appModules = { uuid: 'none' };
-          }
+            device.on(
+              DEVICE_EVENT_NAMES.DISCONNECT,
+              (): Promise<void> => this._onDeviceDisconnect(device),
+            );
 
-          const { uuid: appHash } = appModules;
+            device.on(
+              DEVICE_MESSAGE_EVENTS_NAMES.SUBSCRIBE,
+              (packet: CoapPacket): Promise<void> =>
+                this._onDeviceSubscribe(packet, device),
+            );
 
-          await this._checkProductFirmwareForUpdate(device /* appModule*/);
+            device.on(
+              DEVICE_MESSAGE_EVENTS_NAMES.PRIVATE_EVENT,
+              (packet: CoapPacket): Promise<void> =>
+                this._onDeviceSentMessage(packet, /* isPublic*/ false, device),
+            );
 
-          const existingAttributes = await this._deviceAttributeRepository.getByID(
-            deviceID,
-          );
+            device.on(
+              DEVICE_MESSAGE_EVENTS_NAMES.PUBLIC_EVENT,
+              (packet: CoapPacket): Promise<void> =>
+                this._onDeviceSentMessage(packet, /* isPublic*/ true, device),
+            );
 
-          const {
-            claimCode,
-            currentBuildTarget,
-            imei,
-            isCellular,
-            last_iccid,
-            name,
-            ownerID,
-            registrar,
-          } =
-            existingAttributes || {};
+            device.on(
+              DEVICE_MESSAGE_EVENTS_NAMES.GET_TIME,
+              (packet: CoapPacket): void =>
+                this._onDeviceGetTime(packet, device),
+            );
 
-          device.updateAttributes({
-            appHash,
-            claimCode,
-            currentBuildTarget,
-            imei,
-            isCellular,
-            last_iccid,
-            lastHeard: new Date(),
-            name: name || NAME_GENERATOR.choose(),
-            ownerID,
-            registrar,
-          });
+            // TODO in the next 3 subscriptions for flashing events
+            // there is code duplication, its not clean, but
+            // i guess we'll remove these subscription soon anyways
+            // so I keep it like this for now.
+            device.on(
+              DEVICE_EVENT_NAMES.FLASH_STARTED,
+              async (): Promise<void> => {
+                await device.hasStatus(DEVICE_STATUS_MAP.READY);
+                const { ownerID } = device.getAttributes();
+                this.publishSpecialEvent(
+                  SYSTEM_EVENT_NAMES.FLASH_STATUS,
+                  'started',
+                  deviceID,
+                  ownerID,
+                  false,
+                );
+              },
+            );
 
-          device.setStatus(DEVICE_STATUS_MAP.READY);
+            device.on(
+              DEVICE_EVENT_NAMES.FLASH_SUCCESS,
+              async (): Promise<void> => {
+                await device.hasStatus(DEVICE_STATUS_MAP.READY);
+                const { ownerID } = device.getAttributes();
+                this.publishSpecialEvent(
+                  SYSTEM_EVENT_NAMES.FLASH_STATUS,
+                  'success',
+                  deviceID,
+                  ownerID,
+                  false,
+                );
+              },
+            );
 
-          this.publishSpecialEvent(
-            SYSTEM_EVENT_NAMES.SPARK_STATUS,
-            'online',
-            deviceID,
-            ownerID,
-            false,
-          );
+            device.on(
+              DEVICE_EVENT_NAMES.FLASH_FAILED,
+              async (): Promise<void> => {
+                await device.hasStatus(DEVICE_STATUS_MAP.READY);
+                const { ownerID } = device.getAttributes();
+                this.publishSpecialEvent(
+                  SYSTEM_EVENT_NAMES.FLASH_STATUS,
+                  'failed',
+                  deviceID,
+                  ownerID,
+                  false,
+                );
+              },
+            );
 
-          // TODO
-          // we may update attributes only on disconnect, but currently
-          // removing update here can break claim/provision flow
-          // so need to test carefully before doing this.
-          await this._deviceAttributeRepository.updateByID(
-            deviceID,
-            device.getAttributes(),
-          );
+            if (this._devicesById.has(deviceID)) {
+              const existingConnection = this._devicesById.get(deviceID);
+              nullthrows(existingConnection).disconnect(
+                'Device was already connected. Reconnecting.',
+              );
+            }
 
-          // Send app-hash if this is a new app firmware
-          if (!existingAttributes || appHash !== existingAttributes.appHash) {
-            this.publishSpecialEvent(
-              SYSTEM_EVENT_NAMES.APP_HASH,
+            this._devicesById.set(deviceID, device);
+
+            const systemInformation = await device.completeProtocolInitialization();
+
+            let appModules;
+            try {
+              appModules = FirmwareManager.getAppModule(systemInformation);
+            } catch (ignore) {
+              appModules = { uuid: 'none' };
+            }
+
+            const { uuid: appHash } = appModules;
+
+            await this._checkProductFirmwareForUpdate(device /* appModule*/);
+
+            const existingAttributes = await this._deviceAttributeRepository.getByID(
+              deviceID,
+            );
+
+            const {
+              claimCode,
+              currentBuildTarget,
+              imei,
+              isCellular,
+              last_iccid,
+              name,
+              ownerID,
+              registrar,
+            } = existingAttributes || {};
+
+            device.updateAttributes({
               appHash,
+              claimCode,
+              currentBuildTarget,
+              imei,
+              isCellular,
+              last_iccid,
+              lastHeard: new Date(),
+              name: name || NAME_GENERATOR.choose(),
+              ownerID,
+              registrar,
+            });
+
+            device.setStatus(DEVICE_STATUS_MAP.READY);
+
+            this.publishSpecialEvent(
+              SYSTEM_EVENT_NAMES.SPARK_STATUS,
+              'online',
               deviceID,
               ownerID,
               false,
             );
-          }
 
-          device.emit(DEVICE_EVENT_NAMES.READY);
-        } catch (error) {
-          device.disconnect(
-            `Error during connection: ${error}: ${error.stack}`,
-          );
-        }
-      });
+            // TODO
+            // we may update attributes only on disconnect, but currently
+            // removing update here can break claim/provision flow
+            // so need to test carefully before doing this.
+            await this._deviceAttributeRepository.updateByID(
+              deviceID,
+              device.getAttributes(),
+            );
+
+            // Send app-hash if this is a new app firmware
+            if (!existingAttributes || appHash !== existingAttributes.appHash) {
+              this.publishSpecialEvent(
+                SYSTEM_EVENT_NAMES.APP_HASH,
+                appHash,
+                deviceID,
+                ownerID,
+                false,
+              );
+            }
+
+            device.emit(DEVICE_EVENT_NAMES.READY);
+          } catch (error) {
+            device.disconnect(
+              `Error during connection: ${error}: ${error.stack}`,
+            );
+          }
+        },
+      );
     } catch (error) {
       logger.error({ err: error }, 'Device startup failed');
     }
@@ -474,8 +483,9 @@ class DeviceServer {
         publishOptions.isPublic = false;
 
         shouldSwallowEvent =
-          !SPECIAL_EVENTS.some((specialEvent: string): boolean =>
-            eventName.startsWith(specialEvent),
+          !SPECIAL_EVENTS.some(
+            (specialEvent: string): boolean =>
+              eventName.startsWith(specialEvent),
           ) || device.isFlashing();
         if (shouldSwallowEvent) {
           device.sendReply('EventAck', packet.messageId);
@@ -962,10 +972,12 @@ class DeviceServer {
     while (productDevices.length) {
       const productDevice = productDevices.pop();
       await new Promise((resolve: () => void) => {
-        setImmediate(async (): Promise<void> => {
-          await this._flashDevice(productDevice);
-          resolve();
-        });
+        setImmediate(
+          async (): Promise<void> => {
+            await this._flashDevice(productDevice);
+            resolve();
+          },
+        );
       });
     }
   };
@@ -1049,13 +1061,11 @@ class DeviceServer {
 
     // Update the number of devices on the firmware versions
     if (oldProductFirmware) {
-      oldProductFirmware.device_count -= 1;
       await this._productFirmwareRepository.updateByID(
         oldProductFirmware.id,
         oldProductFirmware,
       );
     }
-    productFirmware.device_count += 1;
     await this._productFirmwareRepository.updateByID(
       productFirmware.id,
       productFirmware,

@@ -6,20 +6,20 @@ import type { IProductDeviceRepository, ProductDevice } from '../types';
 // getByID, deleteByID and update uses model.deviceID as ID for querying
 class MockProductDeviceRepository implements IProductDeviceRepository {
   create = (model: $Shape<ProductDevice>): Promise<ProductDevice> => {
-    throw new Error(`The method is not implemented`);
+    throw new Error('The method is not implemented');
   };
 
   deleteByID = (productDeviceID: string): Promise<void> => {
-    throw new Error(`The method is not implemented`);
+    throw new Error('The method is not implemented');
   };
 
   // eslint-disable-next-line
   getAll = (): Promise<Array<ProductDevice>> => {
-    throw new Error(`The method is not implemented`);
+    throw new Error('The method is not implemented');
   };
 
   getByID = (productDeviceID: string): Promise<?ProductDevice> => {
-    throw new Error(`The method is not implemented`);
+    throw new Error('The method is not implemented');
   };
 
   getAllByProductID = (
@@ -27,7 +27,7 @@ class MockProductDeviceRepository implements IProductDeviceRepository {
     page: number,
     perPage: number,
   ): Promise<Array<ProductDevice>> => {
-    throw new Error(`The method is not implemented`);
+    throw new Error('The method is not implemented');
   };
 
   // This is here just to make things work when used without spark-server
@@ -37,7 +37,7 @@ class MockProductDeviceRepository implements IProductDeviceRepository {
     productDeviceID: string,
     props: $Shape<ProductDevice>,
   ): Promise<ProductDevice> => {
-    throw new Error(`The method is not implemented`);
+    throw new Error('The method is not implemented');
   };
 }
 

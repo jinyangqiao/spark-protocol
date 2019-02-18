@@ -56,7 +56,7 @@ exports.default = function () {
       };
     }
 
-    descriptor.value = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
+    descriptor.value = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
       var _fetchItemFunction;
 
       var args,

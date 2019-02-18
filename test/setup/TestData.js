@@ -6,9 +6,9 @@ const uuidSet = new Set();
 
 class TestData {
   static getID = (): string => {
-    let newID = uuid();
+    let newID = uuid().toLowerCase();
     while (uuidSet.has(newID)) {
-      newID = uuid();
+      newID = uuid().toLowerCase();
     }
 
     uuidSet.add(newID);

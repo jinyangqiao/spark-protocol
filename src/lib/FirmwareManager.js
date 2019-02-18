@@ -47,10 +47,9 @@ class FirmwareManager {
     // This filters out any dependencies that have already been installed
     // or that are older than the currently installed modules.
     const knownMissingDependencies = modules
-      .reduce((deps: Array<any>, module: any): Array<any> => [
-        ...deps,
-        ...module.d,
-      ])
+      .reduce(
+        (deps: Array<any>, module: any): Array<any> => [...deps, ...module.d],
+      )
       .filter((dep: any): boolean => {
         const oldModuleExistsForSlot = modules.some(
           (m: any): boolean => m.f === dep.f && m.n === dep.n && m.v < dep.v,
@@ -75,14 +74,15 @@ class FirmwareManager {
     };
 
     // Map dependencies to firmware metadata
-    const knownFirmwares = knownMissingDependencies.map((dep: any): any =>
-      FirmwareSettings.find(
-        ({ prefixInfo }: { prefixInfo: any }): boolean =>
-          prefixInfo.platformID === platformID &&
-          prefixInfo.moduleVersion === dep.v &&
-          prefixInfo.moduleFunction === numberByFunction[dep.f] &&
-          prefixInfo.moduleIndex === parseInt(dep.n, 10),
-      ),
+    const knownFirmwares = knownMissingDependencies.map(
+      (dep: any): any =>
+        FirmwareSettings.find(
+          ({ prefixInfo }: { prefixInfo: any }): boolean =>
+            prefixInfo.platformID === platformID &&
+            prefixInfo.moduleVersion === dep.v &&
+            prefixInfo.moduleFunction === numberByFunction[dep.f] &&
+            prefixInfo.moduleIndex === parseInt(dep.n, 10),
+        ),
     );
 
     if (!knownFirmwares.length) {
@@ -115,19 +115,21 @@ class FirmwareManager {
 
     // Find the first dependency that isn't already installed
     return allFirmware
-      .filter((firmware: any): boolean => {
-        const {
-          moduleVersion,
-          moduleFunction,
-          moduleIndex,
-        } = firmware.prefixInfo;
-        return !modules.some(
-          (module: any): boolean =>
-            module.v === moduleVersion &&
-            numberByFunction[module.f] === moduleFunction &&
-            parseInt(module.n, 10) === moduleIndex,
-        );
-      })
+      .filter(
+        (firmware: any): boolean => {
+          const {
+            moduleVersion,
+            moduleFunction,
+            moduleIndex,
+          } = firmware.prefixInfo;
+          return !modules.some(
+            (module: any): boolean =>
+              module.v === moduleVersion &&
+              numberByFunction[module.f] === moduleFunction &&
+              parseInt(module.n, 10) === moduleIndex,
+          );
+        },
+      )
       .pop();
   };
 

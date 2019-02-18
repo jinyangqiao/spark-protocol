@@ -1,25 +1,25 @@
 /*
-*   Copyright (C) 2013-2014 Spark Labs, Inc. All rights reserved. -  https://www.spark.io/
-*
-*   This file is part of the Spark-protocol module
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 3
-*   as published by the Free Software Foundation.
-*
-*   Spark-protocol is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with Spark-protocol.  If not, see <http://www.gnu.org/licenses/>.
-*
-*   You can download the source here: https://github.com/spark/spark-protocol
-*
-* @flow
-*
-*/
+ *   Copyright (C) 2013-2014 Spark Labs, Inc. All rights reserved. -  https://www.spark.io/
+ *
+ *   This file is part of the Spark-protocol module
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 3
+ *   as published by the Free Software Foundation.
+ *
+ *   Spark-protocol is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Spark-protocol.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *   You can download the source here: https://github.com/spark/spark-protocol
+ *
+ * @flow
+ *
+ */
 
 import type { CoapMessageTypes } from './CoapMessage';
 import type {
@@ -91,16 +91,18 @@ class CoapMessages {
       // eslint-disable-next-line no-unused-vars
       ([name, value]: [MessageType, MessageSpecificationType]): boolean =>
         !!value.uri,
-    ).map(([name, value]: [MessageType, MessageSpecificationType]): [
-      string,
-      MessageType,
-    ] => {
-      // see what it looks like without params
-      const uri = value.template ? value.template.render({}) : value.uri;
-      const routeKey = _getRouteKey(value.code, `/${uri || ''}`);
+    ).map(
+      ([name, value]: [MessageType, MessageSpecificationType]): [
+        string,
+        MessageType,
+      ] => {
+        // see what it looks like without params
+        const uri = value.template ? value.template.render({}) : value.uri;
+        const routeKey = _getRouteKey(value.code, `/${uri || ''}`);
 
-      return [routeKey, name];
-    }),
+        return [routeKey, name];
+      },
+    ),
   );
 
   static getUriPath = (packet: CoapPacket): string => {
@@ -183,10 +185,12 @@ class CoapMessages {
         if (specification.template) {
           uri = specification.template.render(params);
         }
-        queryParams = (params.args || []).map((value: any): CoapOption => ({
-          name: CoapMessage.Option.URI_QUERY,
-          value: Buffer.isBuffer(value) ? value : new Buffer(value),
-        }));
+        queryParams = (params.args || []).map(
+          (value: any): CoapOption => ({
+            name: CoapMessage.Option.URI_QUERY,
+            value: Buffer.isBuffer(value) ? value : new Buffer(value),
+          }),
+        );
       }
 
       let uriOptions = [];
@@ -199,10 +203,12 @@ class CoapMessages {
         uriOptions = uri
           .split('/')
           .filter((segment: string): boolean => !!segment)
-          .map((segment: string): CoapOption => ({
-            name: CoapMessage.Option.URI_PATH,
-            value: new Buffer(segment),
-          }));
+          .map(
+            (segment: string): CoapOption => ({
+              name: CoapMessage.Option.URI_PATH,
+              value: new Buffer(segment),
+            }),
+          );
       }
 
       return CoapPacket.generate({
@@ -335,7 +341,11 @@ class CoapMessages {
       case 'int':
       case 'int32':
       case 'number': {
-        return buffer.readInt32BE(0);
+        if (!buffer.length) {
+          return 0;
+        }
+
+        return buffer.readIntBE(0, Math.min(4, buffer.length));
       }
 
       case 'float': {

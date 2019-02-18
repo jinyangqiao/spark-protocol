@@ -27,13 +27,15 @@ export default <TType: Object>(
   const formattedKeys = keys.map((key: string): string => key.replace('?', ''));
 
   const keySets = keys
-    .map((key: string, index: number): ?Array<string> => {
-      if (!key.startsWith('?')) {
-        return null;
-      }
+    .map(
+      (key: string, index: number): ?Array<string> => {
+        if (!key.startsWith('?')) {
+          return null;
+        }
 
-      return formattedKeys.slice(0, index);
-    })
+        return formattedKeys.slice(0, index);
+      },
+    )
     .filter((item: ?Array<string>): boolean => !!item)
     .concat([formattedKeys]);
 
