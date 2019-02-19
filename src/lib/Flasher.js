@@ -444,10 +444,11 @@ class Flasher {
     // poll every 500ms to see if a new chunk came in and exit this early.
     // wait a total of 5 seconds
     return new Promise(
-      (resolve: () => void): number =>
-        setInterval(() => {
+      (resolve: () => void): number => {
+        const interval = setInterval(() => {
           counter += 1;
           if (startingChunkCount !== this._missedChunks.size) {
+            clearInterval(interval);
             resolve();
             return;
           }
@@ -455,9 +456,11 @@ class Flasher {
           // 200ms * 5 * 4 / 1000
           if (counter >= 20) {
             logger.info('finished waiting');
+            clearInterval(interval);
             resolve();
           }
-        }, 200),
+        }, 200);
+      },
     );
   };
 

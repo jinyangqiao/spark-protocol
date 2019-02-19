@@ -660,9 +660,10 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
             // wait a total of 5 seconds
 
             return _context8.abrupt('return', new _promise2.default(function (resolve) {
-              return setInterval(function () {
+              var interval = setInterval(function () {
                 counter += 1;
                 if (startingChunkCount !== _this._missedChunks.size) {
+                  clearInterval(interval);
                   resolve();
                   return;
                 }
@@ -670,6 +671,7 @@ function Flasher(client, maxBinarySize, otaChunkSize) {
                 // 200ms * 5 * 4 / 1000
                 if (counter >= 20) {
                   logger.info('finished waiting');
+                  clearInterval(interval);
                   resolve();
                 }
               }, 200);
