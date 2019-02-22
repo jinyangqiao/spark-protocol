@@ -74,6 +74,7 @@ let connectionIdCounter = 0;
 class DeviceServer {
   _areSystemFirmwareAutoupdatesEnabled: boolean;
   _claimCodeManager: ClaimCodeManager;
+  _connectedDevicesLoggingInterval: number;
   _config: DeviceServerConfig;
   _cryptoManager: CryptoManager;
   _deviceAttributeRepository: IDeviceAttributeRepository;
@@ -91,8 +92,10 @@ class DeviceServer {
     eventPublisher: EventPublisher,
     deviceServerConfig: DeviceServerConfig,
     areSystemFirmwareAutoupdatesEnabled: boolean,
+    connectedDevicesLoggingInterval: number,
   ) {
     this._areSystemFirmwareAutoupdatesEnabled = areSystemFirmwareAutoupdatesEnabled;
+    this._connectedDevicesLoggingInterval = connectedDevicesLoggingInterval;
     this._config = deviceServerConfig;
     this._cryptoManager = cryptoManager;
     this._claimCodeManager = claimCodeManager;
@@ -158,7 +161,7 @@ class DeviceServer {
             'Connected Devices',
           );
         }),
-      10000,
+      this._connectedDevicesLoggingInterval,
     );
 
     server.on(

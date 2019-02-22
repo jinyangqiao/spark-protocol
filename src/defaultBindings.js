@@ -15,6 +15,7 @@ import protocolSettings from './settings';
 
 type ServerSettings = {
   BINARIES_DIRECTORY?: string,
+  CONNECTED_DEVICES_LOGGING_INTERVAL: number,
   DEVICE_DIRECTORY: string,
   ENABLE_SYSTEM_FIRWMARE_AUTOUPDATES: boolean,
   SERVER_KEY_FILENAME: string,
@@ -34,6 +35,8 @@ const defaultBindings = (
 
   // Settings
   container.bindValue('DEVICE_DIRECTORY', mergedSettings.DEVICE_DIRECTORY);
+  container.bindValue('CONNECTED_DEVICES_LOGGING_INTERVAL',
+    mergedSettings.CONNECTED_DEVICES_LOGGING_INTERVAL);
   container.bindValue(
     'ENABLE_SYSTEM_FIRWMARE_AUTOUPDATES',
     mergedSettings.ENABLE_SYSTEM_FIRWMARE_AUTOUPDATES,
@@ -96,6 +99,7 @@ const defaultBindings = (
     'EventPublisher',
     'TCP_DEVICE_SERVER_CONFIG',
     'ENABLE_SYSTEM_FIRWMARE_AUTOUPDATES',
+    'CONNECTED_DEVICES_LOGGING_INTERVAL',
   ]);
 };
 
