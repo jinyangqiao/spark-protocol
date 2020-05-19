@@ -64,7 +64,7 @@
     "compact-array": "0.0.1",
     "constitute": "^1.6.2",
     "dotenv": "^5.0.1",
-    "ec-key": "https://github.com/Brewskey/ec-key",
+    "ec-key": "^0.0.4",
     "hogan.js": "*",
     "memoizee": "^0.4.11",
     "mkdirp": "^0.5.1",
